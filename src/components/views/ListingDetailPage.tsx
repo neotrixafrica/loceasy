@@ -6,6 +6,19 @@ import { Heart, MapPin, BedDouble, Maximize, ChevronLeft, ChevronRight, X, Messa
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+const MapView = dynamic(() => import('@/components/shared/MapView'), {
+  ssr: false,
+  loading: () => (
+    <div className="bg-emerald-50 border border-emerald-200 rounded-xl h-48 flex items-center justify-center">
+      <div className="text-center">
+        <MapPin className="h-8 w-8 text-emerald-600 mx-auto mb-2 animate-pulse" />
+        <p className="text-sm text-emerald-700">...</p>
+      </div>
+    </div>
+  ),
+});
 
 interface Listing {
   id: string;
@@ -270,21 +283,24 @@ export function ListingDetailPage() {
               </div>
             )}
 
-            {/* Map placeholder */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-3">{t('detail.location', lang)}</h2>
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-emerald-800">
-                    {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
-                  </p>
-                  <p className="text-xs text-emerald-600 mt-1">
-                    {lang === 'fr' ? 'Carte interactive bientôt disponible' : 'Interactive map coming soon'}
-                  </p>
-                </div>
+            {/* Map */}
+            {(listing.latitude && listing.longitude) && (
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-3">{t('detail.location', lang)}</h2>
+                <MapView
+                  latitude={listing.latitude}
+                  longitude={listing.longitude}
+                  title={listing.title}
+                  className="h-64 rounded-xl overflow-hidden border"
+                  single
+                />
+                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
+                  {listing.address && ` - ${listing.address}`}
+                </p>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Right column - Booking card */}

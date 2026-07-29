@@ -1,14 +1,31 @@
 'use client';
 
 import { useAppStore, type View } from '@/lib/store';
-import { t } from '@/lib/translations';
-import { Home, Search, MessageCircle, Heart, User, LayoutDashboard, PlusCircle, ChevronLeft } from 'lucide-react';
+import { t, LANG_LABELS } from '@/lib/translations';
+import { Home, Search, MessageCircle, Heart, User, LayoutDashboard, PlusCircle, ChevronLeft, Bell, WifiOff, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 
 export function Header() {
-  const { lang, setLang, currentUser, navigate, currentView } = useAppStore();
+  const { lang, setLang, currentUser, navigate, currentView, notifications } = useAppStore();
+  const [isOnline, setIsOnline] = useState(true);
+  const [showLangMenu, setShowLangMenu] = useState(false);
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const unreadNotifications = notifications.filter((n) => !n.read).length;
 
   const navItems: { view: View; label: string; icon?: typeof Home }[] = [];
 
@@ -21,7 +38,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-14 items-center px-4 md:px-6">
         {/* Back button for detail views */}
-        {(currentView === 'listing-detail' || currentView === 'booking-form' || currentView === 'conversation' || currentView === 'add-listing') && (
+        {(currentView === 'listing-detail' || currentView === 'booking-form' || currentView === 'conversation' || currentView === 'add-listing' || currentView === 'notifications') && (
           <Button
             variant="ghost"
             size="icon"
@@ -30,6 +47,14 @@ export function Header() {
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
+        )}
+
+        {/* Offline indicator */}
+        {!isOnline && (
+          <div className="absolute top-0 left-0 right-0 bg-amber-500 text-white text-center py-0.5 text-[10px] font-medium flex items-center justify-center gap-1 z-50">
+            <WifiOff className="h-3 w-3" />
+            {t('offline.title', lang)}
+          </div>
         )}
 
         {/* Logo */}
@@ -68,30 +93,59 @@ export function Header() {
         {/* Right side */}
         <div className="flex items-center gap-2 ml-auto">
           {/* Language switcher */}
-          <div className="flex items-center border rounded-md overflow-hidden">
-            <button
-              className={cn(
-                'px-2.5 py-1 text-xs font-medium transition-colors',
-                lang === 'fr'
-                  ? 'bg-emerald-700 text-white'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              )}
-              onClick={() => setLang('fr')}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 text-xs px-2"
+              onClick={() => setShowLangMenu(!showLangMenu)}
             >
-              FR
-            </button>
-            <button
-              className={cn(
-                'px-2.5 py-1 text-xs font-medium transition-colors',
-                lang === 'en'
-                  ? 'bg-emerald-700 text-white'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              )}
-              onClick={() => setLang('en')}
-            >
-              EN
-            </button>
+              <Globe className="h-3.5 w-3.5" />
+              <span className="uppercase font-semibold">{lang}</span>
+            </Button>
+            {showLangMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowLangMenu(false)} />
+                <div className="absolute right-0 top-full mt-1 bg-card border rounded-lg shadow-lg z-50 py-1 min-w-[120px] animate-in slide-in-from-top-2 duration-150">
+                  {(['fr', 'en', 'ee', 'kab'] as const).map((l) => (
+                    <button
+                      key={l}
+                      className={cn(
+                        'w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center justify-between',
+                        lang === l
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'hover:bg-muted text-foreground'
+                      )}
+                      onClick={() => {
+                        setLang(l);
+                        setShowLangMenu(false);
+                      }}
+                    >
+                      <span>{LANG_LABELS[l]}</span>
+                      <span className="uppercase text-[10px] opacity-60">{l}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
+
+          {/* Notifications bell */}
+          {currentUser && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={() => navigate('notifications')}
+            >
+              <Bell className="h-4 w-4" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center font-bold animate-bounce">
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                </span>
+              )}
+            </Button>
+          )}
 
           {/* Auth */}
           {currentUser ? (
@@ -125,7 +179,9 @@ export function Header() {
 }
 
 export function BottomNav() {
-  const { lang, currentView, navigate, currentUser } = useAppStore();
+  const { lang, currentView, navigate, currentUser, notifications } = useAppStore();
+
+  const unreadNotifications = notifications.filter((n) => !n.read).length;
 
   const tabs = [
     { view: 'home' as View, label: t('nav.home', lang), icon: Home },
@@ -154,7 +210,14 @@ export function BottomNav() {
               )}
               onClick={() => navigate(tab.view)}
             >
-              <tab.icon className={cn('h-5 w-5', isActive && 'font-bold')} />
+              <div className="relative">
+                <tab.icon className={cn('h-5 w-5', isActive && 'font-bold')} />
+                {tab.view === 'profile' && currentUser && unreadNotifications > 0 && (
+                  <span className="absolute -top-1.5 -right-2 w-3.5 h-3.5 bg-red-500 text-white text-[8px] rounded-full flex items-center justify-center font-bold">
+                    {unreadNotifications > 9 ? '9' : unreadNotifications}
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] font-medium">{tab.label}</span>
               {isActive && (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-emerald-700 rounded-b-full" />

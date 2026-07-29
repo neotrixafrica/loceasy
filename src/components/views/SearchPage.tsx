@@ -13,7 +13,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X, Map, LayoutGrid } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const MapView = dynamic(() => import('@/components/shared/MapView'), {
+  ssr: false,
+  loading: () => (
+    <div className="bg-emerald-50 border rounded-xl h-full flex items-center justify-center">
+      <div className="text-center">
+        <Map className="h-8 w-8 text-emerald-600 mx-auto mb-2 animate-pulse" />
+        <p className="text-sm text-emerald-700">...</p>
+      </div>
+    </div>
+  ),
+});
 
 interface Listing {
   id: string;
@@ -28,14 +41,17 @@ interface Listing {
   rooms: number;
   amenities: string;
   landlord: { id: string; name: string };
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export function SearchPage() {
-  const { lang, filters, setFilters, resetFilters } = useAppStore();
+  const { lang, filters, setFilters, resetFilters, navigate } = useAppStore();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('recent');
+  const [showMap, setShowMap] = useState(false);
 
   const quartiers = filters.city ? (TOGO_QUARTIERS[filters.city] || []) : [];
 
@@ -81,6 +97,22 @@ export function SearchPage() {
     filters.search,
   ].filter(Boolean).length;
 
+  const mapMarkers = listings
+    .filter((l) => l.latitude && l.longitude)
+    .map((l) => ({
+      latitude: l.latitude as number,
+      longitude: l.longitude as number,
+      title: l.title,
+      price: l.price,
+      type: l.type,
+      onClick: () => {
+        fetch(`/api/listings/${l.id}`)
+          .then((res) => res.json())
+          .then((data) => navigate('listing-detail', { listing: data }))
+          .catch(() => {});
+      },
+    }));
+
   return (
     <div className="flex-1 container mx-auto px-4 md:px-6 py-6">
       {/* Header */}
@@ -91,20 +123,32 @@ export function SearchPage() {
             {loading ? t('common.loading', lang) : `${listings.length} ${t('search.results', lang)}`}
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowFilters(!showFilters)}
-          className="relative"
-        >
-          <SlidersHorizontal className="h-4 w-4 mr-2" />
-          {t('search.filters', lang)}
-          {activeFilterCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-emerald-700 text-white text-[10px] rounded-full flex items-center justify-center">
-              {activeFilterCount}
-            </span>
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className="relative"
+          >
+            <SlidersHorizontal className="h-4 w-4 mr-2" />
+            {t('search.filters', lang)}
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-emerald-700 text-white text-[10px] rounded-full flex items-center justify-center">
+                {activeFilterCount}
+              </span>
+            )}
+          </Button>
+          {/* Map toggle */}
+          <Button
+            variant={showMap ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowMap(!showMap)}
+            className="hidden md:flex"
+          >
+            <Map className="h-4 w-4 mr-1.5" />
+            {t('search.map', lang)}
+          </Button>
+        </div>
       </div>
 
       {/* Quick Search */}
@@ -246,33 +290,61 @@ export function SearchPage() {
         </Button>
       </div>
 
-      {/* Results */}
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-card border rounded-xl overflow-hidden animate-pulse">
-              <div className="bg-muted h-48" />
-              <div className="p-4 space-y-3">
-                <div className="bg-muted h-4 rounded w-3/4" />
-                <div className="bg-muted h-3 rounded w-1/2" />
-                <div className="bg-muted h-6 rounded w-1/3" />
-              </div>
+      {/* Results with optional Map */}
+      <div className={showMap ? 'flex gap-4 h-[calc(100vh-16rem)]' : ''}>
+        {/* Results grid */}
+        <div className={showMap ? 'flex-1 overflow-y-auto pr-2' : ''}>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-card border rounded-xl overflow-hidden animate-pulse">
+                  <div className="bg-muted h-48" />
+                  <div className="p-4 space-y-3">
+                    <div className="bg-muted h-4 rounded w-3/4" />
+                    <div className="bg-muted h-3 rounded w-1/2" />
+                    <div className="bg-muted h-6 rounded w-1/3" />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : sortedListings.length === 0 ? (
+            <div className="text-center py-16">
+              <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">{t('search.noResults', lang)}</h3>
+              <p className="text-muted-foreground text-sm">{t('search.noResults.desc', lang)}</p>
+            </div>
+          ) : (
+            <div className={`grid gap-4 ${showMap ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
+              {sortedListings.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          )}
         </div>
-      ) : sortedListings.length === 0 ? (
-        <div className="text-center py-16">
-          <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">{t('search.noResults', lang)}</h3>
-          <p className="text-muted-foreground text-sm">{t('search.noResults.desc', lang)}</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sortedListings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
-          ))}
-        </div>
-      )}
+
+        {/* Map panel (desktop only) */}
+        {showMap && (
+          <div className="hidden md:block w-1/2 lg:w-2/5 flex-shrink-0 rounded-xl overflow-hidden border">
+            {mapMarkers.length > 0 ? (
+              <MapView
+                latitude={0}
+                longitude={0}
+                markers={mapMarkers}
+                className="h-full"
+              />
+            ) : (
+              <div className="h-full bg-emerald-50 flex items-center justify-center">
+                <div className="text-center">
+                  <Map className="h-10 w-10 text-emerald-600 mx-auto mb-2" />
+                  <p className="text-sm text-emerald-700">
+                    {lang === 'fr' ? 'Aucune carte disponible pour ces résultats' : 'No map data for these results'}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

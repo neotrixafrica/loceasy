@@ -12,9 +12,10 @@ export type View =
   | 'conversation'
   | 'favorites'
   | 'profile'
-  | 'booking-form';
+  | 'booking-form'
+  | 'notifications';
 
-export type Lang = 'fr' | 'en';
+export type Lang = 'fr' | 'en' | 'ee' | 'kab';
 
 interface Filters {
   city: string;
@@ -51,6 +52,22 @@ interface AppState {
   filters: Filters;
   setFilters: (filters: Partial<Filters>) => void;
   resetFilters: () => void;
+
+  notifications: AppNotification[];
+  addNotification: (notification: Omit<AppNotification, 'id' | 'createdAt' | 'read'>) => void;
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
+  clearNotifications: () => void;
+}
+
+export interface AppNotification {
+  id: string;
+  type: 'booking' | 'message' | 'system';
+  title: string;
+  body: string;
+  read: boolean;
+  createdAt: string;
+  link?: string;
 }
 
 const defaultFilters: Filters = {
@@ -92,4 +109,29 @@ export const useAppStore = create<AppState>((set) => ({
       filters: { ...state.filters, ...newFilters },
     })),
   resetFilters: () => set({ filters: { ...defaultFilters } }),
+
+  notifications: [],
+  addNotification: (notification) =>
+    set((state) => ({
+      notifications: [
+        {
+          ...notification,
+          id: crypto.randomUUID?.() || Date.now().toString(),
+          createdAt: new Date().toISOString(),
+          read: false,
+        },
+        ...state.notifications,
+      ].slice(0, 50),
+    })),
+  markNotificationRead: (id) =>
+    set((state) => ({
+      notifications: state.notifications.map((n) =>
+        n.id === id ? { ...n, read: true } : n
+      ),
+    })),
+  markAllNotificationsRead: () =>
+    set((state) => ({
+      notifications: state.notifications.map((n) => ({ ...n, read: true })),
+    })),
+  clearNotifications: () => set({ notifications: [] }),
 }));

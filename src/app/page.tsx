@@ -14,7 +14,9 @@ import { MessagesPage } from '@/components/views/MessagesPage';
 import { FavoritesPage } from '@/components/views/FavoritesPage';
 import { ProfilePage } from '@/components/views/ProfilePage';
 import { BookingFormPage } from '@/components/views/BookingFormPage';
+import { NotificationsPage } from '@/components/views/NotificationsPage';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useNotificationPolling } from '@/hooks/use-notification-polling';
 
 function Footer() {
   const { lang } = useAppStore();
@@ -55,9 +57,9 @@ function Footer() {
           <div>
             <h4 className="font-semibold text-sm mb-3">{t('footer.contact', lang)}</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>📍 Lomé, Togo</li>
-              <li>📧 contact@loceasy.tg</li>
-              <li>📞 +228 90 00 00 00</li>
+              <li>Lome, Togo</li>
+              <li>contact@loceasy.tg</li>
+              <li>+228 90 00 00 00</li>
             </ul>
           </div>
         </div>
@@ -74,6 +76,7 @@ function Footer() {
 
 export default function Page() {
   const { currentView } = useAppStore();
+  useNotificationPolling();
 
   const renderView = () => {
     switch (currentView) {
@@ -89,11 +92,12 @@ export default function Page() {
       case 'favorites': return <FavoritesPage />;
       case 'profile': return <ProfilePage />;
       case 'booking-form': return <BookingFormPage />;
+      case 'notifications': return <NotificationsPage />;
       default: return <HomePage />;
     }
   };
 
-  const hideFooter = ['listing-detail', 'messages', 'conversation', 'login', 'register'].includes(currentView);
+  const hideFooter = ['listing-detail', 'messages', 'conversation', 'login', 'register', 'notifications'].includes(currentView);
 
   return (
     <div className="min-h-screen flex flex-col">
