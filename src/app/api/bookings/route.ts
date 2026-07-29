@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
     const booking = await db.booking.create({
       data: {
         status: 'pending',
-        startDate,
-        endDate,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
         message: message || null,
         tenantId,
         listingId,

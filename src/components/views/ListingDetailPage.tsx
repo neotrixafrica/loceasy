@@ -33,8 +33,8 @@ interface Listing {
   longitude: number | null;
   rooms: number;
   area: number | null;
-  amenities: string;
-  images: string;
+  amenities: string[];
+  images: string[];
   rules: string | null;
   landlord: {
     id: string;
@@ -53,8 +53,8 @@ export function ListingDetailPage() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
 
-  const images: string[] = listing ? JSON.parse(listing.images) : [];
-  const amenities: string[] = listing ? JSON.parse(listing.amenities) : [];
+  const images = listing ? listing.images : [];
+  const amenities = listing ? listing.amenities : [];
 
   useEffect(() => {
     if (currentUser && listing) {

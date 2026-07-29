@@ -3,8 +3,20 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  tenant
+  landlord
+}
+
+enum BookingStatus {
+  pending
+  accepted
+  rejected
+  cancelled
 }
 
 model User {
@@ -13,7 +25,7 @@ model User {
   password  String
   name      String
   phone     String?
-  role      String   @default("tenant")
+  role      UserRole @default(tenant)
   avatar    String?
   verified  Boolean  @default(false)
   city      String?
@@ -25,6 +37,8 @@ model User {
   favorites        Favorite[] @relation("UserFavorites")
   sentMessages     Message[]  @relation("SentMessages")
   receivedMessages Message[]  @relation("ReceivedMessages")
+
+  @@index([role])
 }
 
 model Listing {
@@ -40,32 +54,42 @@ model Listing {
   longitude   Float?
   rooms       Int      @default(1)
   area        Float?
-  amenities   String
-  images      String
+  amenities   String[] @default([])
+  images      String[] @default([])
   rules       String?
   available   Boolean  @default(true)
   landlordId  String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  landlord  User      @relation("LandlordListings", fields: [landlordId], references: [id])
+  landlord  User      @relation("LandlordListings", fields: [landlordId], references: [id], onDelete: Cascade)
   bookings  Booking[] @relation("ListingBookings")
   favorites Favorite[] @relation("ListingFavorites")
+
+  @@index([city])
+  @@index([type])
+  @@index([available])
+  @@index([landlordId])
+  @@index([price])
 }
 
 model Booking {
-  id        String   @id @default(cuid())
-  status    String   @default("pending")
-  startDate String
-  endDate   String
+  id        String        @id @default(cuid())
+  status    BookingStatus @default(pending)
+  startDate DateTime
+  endDate   DateTime
   message   String?
   tenantId  String
   listingId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  tenant  User    @relation("TenantBookings", fields: [tenantId], references: [id])
-  listing Listing @relation("ListingBookings", fields: [listingId], references: [id])
+  tenant  User    @relation("TenantBookings", fields: [tenantId], references: [id], onDelete: Cascade)
+  listing Listing @relation("ListingBookings", fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([listingId])
+  @@index([status])
 }
 
 model Message {
@@ -77,8 +101,12 @@ model Message {
   read       Boolean  @default(false)
   createdAt  DateTime @default(now())
 
-  sender   User @relation("SentMessages", fields: [senderId], references: [id])
-  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
 }
 
 model Favorite {
@@ -87,8 +115,10 @@ model Favorite {
   listingId String
   createdAt DateTime @default(now())
 
-  user    User    @relation("UserFavorites", fields: [userId], references: [id])
-  listing Listing @relation("ListingFavorites", fields: [listingId], references: [id])
+  user    User    @relation("UserFavorites", fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation("ListingFavorites", fields: [listingId], references: [id], onDelete: Cascade)
 
   @@unique([userId, listingId])
+  @@index([userId])
+  @@index([listingId])
 }

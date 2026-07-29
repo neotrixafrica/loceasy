@@ -15,10 +15,10 @@ interface Listing {
   type: string;
   city: string;
   quartier: string | null;
-  images: string;
+  images: string[];
   area: number | null;
   rooms: number;
-  amenities: string;
+  amenities: string[];
   landlord: { id: string; name: string };
 }
 
@@ -27,7 +27,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const images: string[] = listing.images ? JSON.parse(listing.images) : [];
+  const images = listing.images || [];
 
   useEffect(() => {
     if (currentUser) {

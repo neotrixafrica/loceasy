@@ -36,10 +36,10 @@ interface Listing {
   type: string;
   city: string;
   quartier: string | null;
-  images: string;
+  images: string[];
   area: number | null;
   rooms: number;
-  amenities: string;
+  amenities: string[];
   landlord: { id: string; name: string };
   latitude?: number | null;
   longitude?: number | null;

@@ -20,7 +20,7 @@ interface Listing {
   city: string;
   quartier: string | null;
   available: boolean;
-  images: string;
+  images: string[];
 }
 
 interface Booking {
@@ -30,7 +30,7 @@ interface Booking {
   endDate: string;
   message: string | null;
   tenant: { id: string; name: string; phone: string | null };
-  listing: { id: string; title: string; city: string; quartier: string | null; price: number; images: string };
+  listing: { id: string; title: string; city: string; quartier: string | null; price: number; images: string[] };
 }
 
 export function LandlordDashboard() {
@@ -190,7 +190,7 @@ export function LandlordDashboard() {
             </div>
           ) : (
             listings.map((listing) => {
-              const images: string[] = JSON.parse(listing.images || '[]');
+              const images = listing.images || [];
               return (
                 <div key={listing.id} className="bg-card border rounded-xl p-4 flex items-center gap-4">
                   <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
