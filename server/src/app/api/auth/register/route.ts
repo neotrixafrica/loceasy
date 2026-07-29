@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { hashPassword } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,10 +22,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const hashed = await hashPassword(password);
+
     const user = await db.user.create({
       data: {
         email,
-        password,
+        password: hashed,
         name,
         phone: phone || null,
         role: role || 'tenant',

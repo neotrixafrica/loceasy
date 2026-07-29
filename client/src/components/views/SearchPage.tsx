@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { t, TOGO_CITIES, TOGO_QUARTIERS } from '@/lib/translations';
 import { ListingCard } from '@/components/shared/ListingCard';
 import { Button } from '@/components/ui/button';
@@ -70,7 +71,7 @@ export function SearchPage() {
       if (filters.maxPrice) params.set('maxPrice', String(filters.maxPrice));
       if (filters.search) params.set('search', filters.search);
 
-      const res = await fetch(`/api/listings?${params.toString()}`);
+      const res = await apiFetch(`/api/listings?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setListings(data);
@@ -106,7 +107,7 @@ export function SearchPage() {
       price: l.price,
       type: l.type,
       onClick: () => {
-        fetch(`/api/listings/${l.id}`)
+        apiFetch(`/api/listings/${l.id}`)
           .then((res) => res.json())
           .then((data) => navigate('listing-detail', { listing: data }))
           .catch(() => {});

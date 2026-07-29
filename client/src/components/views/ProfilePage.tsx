@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,7 +21,7 @@ export function ProfilePage() {
     if (currentUser) {
       const load = async () => {
         try {
-          const res = await fetch(`/api/bookings?tenantId=${currentUser.id}`);
+          const res = await apiFetch(`/api/bookings?tenantId=${currentUser.id}`);
           if (res.ok) {
             setBookings(await res.json());
           }
@@ -32,7 +33,15 @@ export function ProfilePage() {
     }
   }, [currentUser]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiFetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch {
+      // ignore network errors
+    }
     logout();
     toast.success(lang === 'fr' ? 'Déconnecté avec succès' : 'Logged out successfully');
   };

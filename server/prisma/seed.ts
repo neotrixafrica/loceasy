@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const db = new PrismaClient();
+
+async function hash(pwd: string) {
+  return bcrypt.hash(pwd, 12);
+}
 
 async function seed() {
   // Clean existing data
@@ -14,7 +19,7 @@ async function seed() {
   const tenant1 = await db.user.create({
     data: {
       email: 'komlan@student.tg',
-      password: 'password123',
+      password: await hash('password123'),
       name: 'Komlan Agbéko',
       phone: '+228 90 12 34 56',
       role: 'tenant',
@@ -26,7 +31,7 @@ async function seed() {
   const tenant2 = await db.user.create({
     data: {
       email: 'ayawo@fonctionnaire.tg',
-      password: 'password123',
+      password: await hash('password123'),
       name: 'Ayawo Dossou',
       phone: '+228 91 23 45 67',
       role: 'tenant',
@@ -38,7 +43,7 @@ async function seed() {
   const landlord1 = await db.user.create({
     data: {
       email: 'mensah@proprio.tg',
-      password: 'password123',
+      password: await hash('password123'),
       name: 'Mensah Akakpo',
       phone: '+228 92 34 56 78',
       role: 'landlord',
@@ -50,7 +55,7 @@ async function seed() {
   const landlord2 = await db.user.create({
     data: {
       email: 'amenega@proprio.tg',
-      password: 'password123',
+      password: await hash('password123'),
       name: 'Aménégah Koffi',
       phone: '+228 93 45 67 89',
       role: 'landlord',

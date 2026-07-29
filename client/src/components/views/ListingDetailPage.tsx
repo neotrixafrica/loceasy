@@ -1,6 +1,7 @@
 'use client';
 
 import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { Heart, MapPin, BedDouble, Maximize, ChevronLeft, ChevronRight, X, MessageCircle, CalendarDays, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -58,7 +59,7 @@ export function ListingDetailPage() {
 
   useEffect(() => {
     if (currentUser && listing) {
-      fetch(`/api/favorites?userId=${currentUser.id}`)
+      apiFetch(`/api/favorites?userId=${currentUser.id}`)
         .then((res) => res.json())
         .then((favs) => setIsFavorite(favs.some((f: { id: string }) => f.id === listing.id)))
         .catch(() => {});
@@ -80,10 +81,10 @@ export function ListingDetailPage() {
     }
     try {
       if (isFavorite) {
-        await fetch(`/api/favorites?userId=${currentUser.id}&listingId=${listing.id}`, { method: 'DELETE' });
+        await apiFetch(`/api/favorites?userId=${currentUser.id}&listingId=${listing.id}`, { method: 'DELETE' });
         setIsFavorite(false);
       } else {
-        await fetch('/api/favorites', {
+        await apiFetch('/api/favorites', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: currentUser.id, listingId: listing.id }),

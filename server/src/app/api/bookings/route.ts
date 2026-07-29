@@ -1,19 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCurrentUser } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const tenantId = searchParams.get('tenantId');
-    const landlordId = searchParams.get('landlordId');
-
-    const where: Record<string, unknown> = {};
-
-    if (tenantId) {
-      where.tenantId = tenantId;
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (landlordId) {
-      where.listing = { landlordId };
+
+    const searchParams = request.nextUrl.searchParams;
+    const scope = searchParams.get('scope');
+
+    let where: Record<string, unknown> = {};
+    if (currentUser.role === 'landlord') {
+      where = { listing: { landlordId: currentUser.id } };
+    } else {
+      where = { tenantId: currentUser.id };
+    }
+
+    if (scope === 'landlord' && currentUser.role === 'landlord') {
+      where = { listing: { landlordId: currentUser.id } };
+    } else if (scope === 'tenant') {
+      where = { tenantId: currentUser.id };
     }
 
     const bookings = await db.booking.findMany({
@@ -35,10 +44,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { startDate, endDate, message, tenantId, listingId } = body;
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== 'tenant') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!startDate || !endDate || !tenantId || !listingId) {
+    const body = await request.json();
+    const { startDate, endDate, message, listingId } = body;
+
+    if (!startDate || !endDate || !listingId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -51,7 +65,7 @@ export async function POST(request: NextRequest) {
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         message: message || null,
-        tenantId,
+        tenantId: currentUser.id,
         listingId,
       },
     });

@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCurrentUser } from '@/lib/session';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId required' }, { status: 400 });
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const favorites = await db.favorite.findMany({
-      where: { userId },
+      where: { userId: currentUser.id },
       include: {
         listing: {
           include: {
@@ -30,15 +29,20 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { userId, listingId } = body;
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!userId || !listingId) {
+    const body = await request.json();
+    const { listingId } = body;
+
+    if (!listingId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const favorite = await db.favorite.create({
-      data: { userId, listingId },
+      data: { userId: currentUser.id, listingId },
     });
 
     return NextResponse.json(favorite, { status: 201 });
@@ -49,16 +53,20 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get('userId');
     const listingId = searchParams.get('listingId');
 
-    if (!userId || !listingId) {
+    if (!listingId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     await db.favorite.deleteMany({
-      where: { userId, listingId },
+      where: { userId: currentUser.id, listingId },
     });
 
     return NextResponse.json({ success: true });

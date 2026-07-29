@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,8 +48,8 @@ export function LandlordDashboard() {
   const fetchData = async () => {
     try {
       const [listingsRes, bookingsRes] = await Promise.all([
-        fetch(`/api/listings?city=`),
-        fetch(`/api/bookings?landlordId=${currentUser?.id}`),
+        apiFetch(`/api/listings?city=`),
+        apiFetch(`/api/bookings?landlordId=${currentUser?.id}`),
       ]);
       const allListings = await listingsRes.json();
       const allBookings = await bookingsRes.json();
@@ -67,7 +68,7 @@ export function LandlordDashboard() {
 
   const handleBookingAction = async (bookingId: string, status: string) => {
     try {
-      const res = await fetch(`/api/bookings/${bookingId}?XTransformPort=3000`, {
+      const res = await apiFetch(`/api/bookings/${bookingId}?XTransformPort=3000`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
@@ -83,7 +84,7 @@ export function LandlordDashboard() {
 
   const handleDeleteListing = async (listingId: string) => {
     try {
-      const res = await fetch(`/api/listings/${listingId}?XTransformPort=3000`, {
+      const res = await apiFetch(`/api/listings/${listingId}?XTransformPort=3000`, {
         method: 'DELETE',
       });
       if (res.ok) {

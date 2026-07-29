@@ -1,64 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCurrentUser } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const senderId = searchParams.get('senderId');
-    const receiverId = searchParams.get('receiverId');
-    const userId = searchParams.get('userId');
-
-    // Get conversations for a user (latest message per conversation partner)
-    if (userId) {
-      const messages = await db.message.findMany({
-        where: {
-          OR: [{ senderId: userId }, { receiverId: userId }],
-        },
-        include: {
-          sender: { select: { id: true, name: true, avatar: true } },
-          receiver: { select: { id: true, name: true, avatar: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      // Group by conversation
-      const conversations = new Map<string, (typeof messages)[number][]>();
-      for (const msg of messages) {
-        const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
-        const key = partnerId;
-        if (!conversations.has(key)) {
-          conversations.set(key, []);
-        }
-        conversations.get(key)!.push(msg);
-      }
-
-      // Get latest message per conversation
-      const conversationList = Array.from(conversations.entries()).map(
-        ([partnerId, msgs]) => ({
-          partnerId,
-          partnerName:
-            msgs[0].senderId === userId
-              ? msgs[0].receiver.name
-              : msgs[0].sender.name,
-          partnerAvatar:
-            msgs[0].senderId === userId
-              ? msgs[0].receiver.avatar
-              : msgs[0].sender.avatar,
-          lastMessage: msgs[0],
-          unread: msgs.filter((m) => !m.read && m.receiverId === userId).length,
-        })
-      );
-
-      return NextResponse.json(conversationList);
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get specific conversation messages
-    if (senderId && receiverId) {
+    const searchParams = request.nextUrl.searchParams;
+    const partnerId = searchParams.get('partnerId');
+    const userId = currentUser.id;
+
+    if (partnerId) {
       const messages = await db.message.findMany({
         where: {
           OR: [
-            { senderId, receiverId },
-            { senderId: receiverId, receiverId: senderId },
+            { senderId: userId, receiverId: partnerId },
+            { senderId: partnerId, receiverId: userId },
           ],
         },
         include: {
@@ -71,8 +31,8 @@ export async function GET(request: NextRequest) {
       // Mark as read
       await db.message.updateMany({
         where: {
-          senderId: receiverId,
-          receiverId: senderId,
+          senderId: partnerId,
+          receiverId: userId,
           read: false,
         },
         data: { read: true },
@@ -81,7 +41,45 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(messages);
     }
 
-    return NextResponse.json([]);
+    // Get conversations for a user
+    const messages = await db.message.findMany({
+      where: {
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+      include: {
+        sender: { select: { id: true, name: true, avatar: true } },
+        receiver: { select: { id: true, name: true, avatar: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Group by conversation
+    const conversations = new Map<string, (typeof messages)[number][]>();
+    for (const msg of messages) {
+      const key = msg.senderId === userId ? msg.receiverId : msg.senderId;
+      if (!conversations.has(key)) {
+        conversations.set(key, []);
+      }
+      conversations.get(key)!.push(msg);
+    }
+
+    const conversationList = Array.from(conversations.entries()).map(
+      ([partnerId, msgs]) => ({
+        partnerId,
+        partnerName:
+          msgs[0].senderId === userId
+            ? msgs[0].receiver.name
+            : msgs[0].sender.name,
+        partnerAvatar:
+          msgs[0].senderId === userId
+            ? msgs[0].receiver.avatar
+            : msgs[0].sender.avatar,
+        lastMessage: msgs[0],
+        unread: msgs.filter((m) => !m.read && m.receiverId === userId).length,
+      })
+    );
+
+    return NextResponse.json(conversationList);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
@@ -89,10 +87,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { content, senderId, receiverId, listingId } = body;
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!content || !senderId || !receiverId) {
+    const body = await request.json();
+    const { content, receiverId, listingId } = body;
+
+    if (!content || !receiverId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -102,7 +105,7 @@ export async function POST(request: NextRequest) {
     const message = await db.message.create({
       data: {
         content,
-        senderId,
+        senderId: currentUser.id,
         receiverId,
         listingId: listingId || null,
       },

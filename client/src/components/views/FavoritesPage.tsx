@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { ListingCard } from '@/components/shared/ListingCard';
 import { Heart } from 'lucide-react';
@@ -19,7 +20,7 @@ export function FavoritesPage() {
 
   const fetchFavorites = async () => {
     try {
-      const res = await fetch(`/api/favorites?userId=${currentUser?.id}`);
+      const res = await apiFetch(`/api/favorites?userId=${currentUser?.id}`);
       if (res.ok) {
         const data = await res.json();
         setFavorites(data);

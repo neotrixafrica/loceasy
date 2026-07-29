@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCurrentUser } from '@/lib/session';
 
 export async function GET(request: NextRequest) {
   try {
@@ -57,13 +58,18 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser || currentUser.role !== 'landlord') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const {
       title, description, price, type, city, quartier, address,
-      latitude, longitude, rooms, area, amenities, images, rules, landlordId,
+      latitude, longitude, rooms, area, amenities, images, rules,
     } = body;
 
-    if (!title || !description || !price || !type || !city || !landlordId) {
+    if (!title || !description || !price || !type || !city) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -86,7 +92,7 @@ export async function POST(request: NextRequest) {
         amenities: amenities || [],
         images: images || [],
         rules: rules || null,
-        landlordId,
+        landlordId: currentUser.id,
       },
     });
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,7 @@ export function BookingFormPage() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await apiFetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

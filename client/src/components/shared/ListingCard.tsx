@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import { t } from '@/lib/translations';
+import { apiFetch } from '@/lib/api';
 import { Heart, MapPin, BedDouble, Maximize } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -31,7 +32,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
 
   useEffect(() => {
     if (currentUser) {
-      fetch(`/api/favorites?userId=${currentUser.id}`)
+      apiFetch(`/api/favorites?userId=${currentUser.id}`)
         .then((res) => res.json())
         .then((favs) => setIsFavorite(favs.some((f: { id: string }) => f.id === listing.id)))
         .catch(() => {});
@@ -46,13 +47,13 @@ export function ListingCard({ listing }: { listing: Listing }) {
     }
     try {
       if (isFavorite) {
-        await fetch(`/api/favorites?userId=${currentUser.id}&listingId=${listing.id}`, { method: 'DELETE' });
+        await apiFetch(`/api/favorites?userId=${currentUser.id}&listingId=${listing.id}`, { method: 'DELETE' });
         setIsFavorite(false);
       } else {
-        await fetch('/api/favorites', {
+        await apiFetch('/api/favorites', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUser.id, listingId: listing.id }),
+          body: JSON.stringify({ listingId: listing.id }),
         });
         setIsFavorite(true);
       }
@@ -63,7 +64,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
 
   const handleClick = async () => {
     try {
-      const res = await fetch(`/api/listings/${listing.id}`);
+      const res = await apiFetch(`/api/listings/${listing.id}`);
       if (res.ok) {
         const data = await res.json();
         navigate('listing-detail', { listing: data });

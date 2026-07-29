@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { t, TOGO_CITIES, TOGO_QUARTIERS, AMENITIES_LIST } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,7 +44,7 @@ export function AddListingPage() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/listings', {
+      const res = await apiFetch('/api/listings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

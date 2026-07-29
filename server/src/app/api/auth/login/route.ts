@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { verifyPassword, signToken } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,12 +17,27 @@ export async function POST(request: NextRequest) {
 
     const user = await db.user.findUnique({ where: { email } });
 
-    if (!user || user.password !== password) {
+    if (!user || !(await verifyPassword(password, user.password))) {
       return NextResponse.json(
         { error: 'Incorrect email or password' },
         { status: 401 }
       );
     }
+
+    const token = signToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role as string,
+    });
+
+    const cookieStore = await cookies();
+    cookieStore.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
 
     const { password: _, ...safeUser } = user;
     return NextResponse.json(safeUser);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { useEffect, useRef } from 'react';
 
@@ -21,7 +22,7 @@ export function useNotificationPolling() {
     const poll = async () => {
       try {
         // Check for new messages
-        const msgRes = await fetch(`/api/messages?userId=${currentUser.id}`);
+        const msgRes = await apiFetch(`/api/messages?userId=${currentUser.id}`);
         if (msgRes.ok) {
           const conversations = await msgRes.json();
           const totalUnread = conversations.reduce((sum: number, c: any) => sum + (c.unread || 0), 0);
@@ -40,7 +41,7 @@ export function useNotificationPolling() {
 
         // Check for new bookings (for landlords)
         if (currentUser.role === 'landlord') {
-          const bookRes = await fetch(`/api/bookings?landlordId=${currentUser.id}`);
+          const bookRes = await apiFetch(`/api/bookings?landlordId=${currentUser.id}`);
           if (bookRes.ok) {
             const bookings = await bookRes.json();
             const pendingCount = bookings.filter((b: any) => b.status === 'pending').length;

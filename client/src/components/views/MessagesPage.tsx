@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,7 +62,7 @@ export function MessagesPage() {
 
   const fetchConversations = async () => {
     try {
-      const res = await fetch(`/api/messages?userId=${currentUser?.id}`);
+      const res = await apiFetch(`/api/messages?userId=${currentUser?.id}`);
       if (res.ok) {
         const data = await res.json();
         setConversations(data);
@@ -78,7 +79,7 @@ export function MessagesPage() {
 
   const fetchMessages = async (partnerId: string) => {
     try {
-      const res = await fetch(`/api/messages?senderId=${currentUser?.id}&receiverId=${partnerId}`);
+      const res = await apiFetch(`/api/messages?senderId=${currentUser?.id}&receiverId=${partnerId}`);
       if (res.ok) {
         const data = await res.json();
         setMessages(data);
@@ -91,7 +92,7 @@ export function MessagesPage() {
   const sendMessage = async () => {
     if (!newMessage.trim() || !currentUser || !activeConversation) return;
     try {
-      const res = await fetch('/api/messages', {
+      const res = await apiFetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

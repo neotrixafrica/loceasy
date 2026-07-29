@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCurrentUser } from '@/lib/session';
 
 export async function GET(
   request: NextRequest,
@@ -31,12 +32,26 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
+    const existing = await db.listing.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
+    }
+    if (existing.landlordId !== currentUser.id && currentUser.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await request.json();
+    const { landlordId, ...updateData } = body;
 
     const listing = await db.listing.update({
       where: { id },
-      data: body,
+      data: updateData,
     });
 
     return NextResponse.json(listing);
@@ -50,7 +65,20 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
+    const existing = await db.listing.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
+    }
+    if (existing.landlordId !== currentUser.id && currentUser.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     await db.listing.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {

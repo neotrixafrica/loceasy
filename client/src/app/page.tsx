@@ -2,6 +2,7 @@
 
 import { useAppStore } from '@/lib/store';
 import { t } from '@/lib/translations';
+import { useEffect } from 'react';
 import { Header, BottomNav } from '@/components/layout/Header';
 import { HomePage } from '@/components/views/HomePage';
 import { SearchPage } from '@/components/views/SearchPage';
@@ -75,8 +76,18 @@ function Footer() {
 }
 
 export default function Page() {
-  const { currentView } = useAppStore();
+  const { currentView, login, logout } = useAppStore();
   useNotificationPolling();
+
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error('Not authenticated');
+      })
+      .then((user) => login(user))
+      .catch(() => logout());
+  }, [login, logout]);
 
   const renderView = () => {
     switch (currentView) {
