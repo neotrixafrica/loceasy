@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 export function ProfilePage() {
   const { lang, currentUser, logout } = useAppStore();
   const router = useRouter();
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<unknown[]>([]);
 
   useEffect(() => {
     if (currentUser) {

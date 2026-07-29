@@ -1,20 +1,5 @@
 import { create } from 'zustand';
 
-export type View =
-  | 'home'
-  | 'search'
-  | 'listing-detail'
-  | 'login'
-  | 'register'
-  | 'landlord-dashboard'
-  | 'add-listing'
-  | 'messages'
-  | 'conversation'
-  | 'favorites'
-  | 'profile'
-  | 'booking-form'
-  | 'notifications';
-
 export type Lang = 'fr' | 'en' | 'ee' | 'kab';
 
 interface Filters {
@@ -27,12 +12,6 @@ interface Filters {
 }
 
 interface AppState {
-  currentView: View;
-  previousView: View | null;
-  navigationData: Record<string, unknown>;
-  navigate: (view: View, data?: Record<string, unknown>) => void;
-  goBack: () => void;
-
   currentUser: {
     id: string;
     email: string;
@@ -80,25 +59,9 @@ const defaultFilters: Filters = {
 };
 
 export const useAppStore = create<AppState>((set) => ({
-  currentView: 'home',
-  previousView: null,
-  navigationData: {},
-  navigate: (view, data = {}) =>
-    set((state) => ({
-      currentView: view,
-      previousView: state.currentView,
-      navigationData: data,
-    })),
-  goBack: () =>
-    set((state) => ({
-      currentView: state.previousView || 'home',
-      previousView: null,
-      navigationData: {},
-    })),
-
   currentUser: null,
   login: (user) => set({ currentUser: user }),
-  logout: () => set({ currentUser: null, currentView: 'home' }),
+  logout: () => set({ currentUser: null }),
 
   lang: 'fr',
   setLang: (lang) => set({ lang }),

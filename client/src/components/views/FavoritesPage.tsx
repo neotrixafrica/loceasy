@@ -8,8 +8,8 @@ import { ListingCard } from '@/components/shared/ListingCard';
 import { Heart } from 'lucide-react';
 
 export function FavoritesPage() {
-  const { lang, currentUser, navigate } = useAppStore();
-  const [favorites, setFavorites] = useState<any[]>([]);
+  const { lang, currentUser } = useAppStore();
+  const [favorites, setFavorites] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export function FavoritesPage() {
 
   const fetchFavorites = async () => {
     try {
-      const res = await apiFetch(`/api/favorites?userId=${currentUser?.id}`);
+      const res = await apiFetch('/api/favorites');
       if (res.ok) {
         const data = await res.json();
         setFavorites(data);

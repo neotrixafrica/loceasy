@@ -2,8 +2,15 @@
 
 import { useAppStore } from '@/lib/store';
 import { apiFetch } from '@/lib/api';
-import { t } from '@/lib/translations';
 import { useEffect, useRef } from 'react';
+
+interface Conversation {
+  unread: number;
+}
+
+interface Booking {
+  status: string;
+}
 
 /**
  * Polls for unread messages and new bookings periodically.
@@ -22,10 +29,10 @@ export function useNotificationPolling() {
     const poll = async () => {
       try {
         // Check for new messages
-        const msgRes = await apiFetch(`/api/messages?userId=${currentUser.id}`);
+        const msgRes = await apiFetch('/api/messages');
         if (msgRes.ok) {
-          const conversations = await msgRes.json();
-          const totalUnread = conversations.reduce((sum: number, c: any) => sum + (c.unread || 0), 0);
+          const conversations = (await msgRes.json()) as Conversation[];
+          const totalUnread = conversations.reduce((sum, c) => sum + (c.unread || 0), 0);
           if (totalUnread > lastMessageCount.current && lastMessageCount.current > 0) {
             addNotification({
               type: 'message',
@@ -41,10 +48,10 @@ export function useNotificationPolling() {
 
         // Check for new bookings (for landlords)
         if (currentUser.role === 'landlord') {
-          const bookRes = await apiFetch(`/api/bookings?landlordId=${currentUser.id}`);
+          const bookRes = await apiFetch('/api/bookings');
           if (bookRes.ok) {
-            const bookings = await bookRes.json();
-            const pendingCount = bookings.filter((b: any) => b.status === 'pending').length;
+            const bookings = (await bookRes.json()) as Booking[];
+            const pendingCount = bookings.filter((b) => b.status === 'pending').length;
             if (pendingCount > lastBookingCount.current && lastBookingCount.current > 0) {
               addNotification({
                 type: 'booking',
