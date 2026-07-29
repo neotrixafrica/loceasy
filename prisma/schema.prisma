@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  role      String   @default("tenant")
+  avatar    String?
+  verified  Boolean  @default(false)
+  city      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listings         Listing[]  @relation("LandlordListings")
+  bookings         Booking[]  @relation("TenantBookings")
+  favorites        Favorite[] @relation("UserFavorites")
+  sentMessages     Message[]  @relation("SentMessages")
+  receivedMessages Message[]  @relation("ReceivedMessages")
+}
+
+model Listing {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  type        String
+  city        String
+  quartier    String?
+  address     String?
+  latitude    Float?
+  longitude   Float?
+  rooms       Int      @default(1)
+  area        Float?
+  amenities   String
+  images      String
+  rules       String?
+  available   Boolean  @default(true)
+  landlordId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  landlord  User      @relation("LandlordListings", fields: [landlordId], references: [id])
+  bookings  Booking[] @relation("ListingBookings")
+  favorites Favorite[] @relation("ListingFavorites")
+}
+
+model Booking {
+  id        String   @id @default(cuid())
+  status    String   @default("pending")
+  startDate String
+  endDate   String
+  message   String?
+  tenantId  String
+  listingId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  User    @relation("TenantBookings", fields: [tenantId], references: [id])
+  listing Listing @relation("ListingBookings", fields: [listingId], references: [id])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  senderId   String
+  receiverId String
+  listingId  String?
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation("UserFavorites", fields: [userId], references: [id])
+  listing Listing @relation("ListingFavorites", fields: [listingId], references: [id])
+
+  @@unique([userId, listingId])
+}
