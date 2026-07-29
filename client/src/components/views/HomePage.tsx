@@ -2,10 +2,12 @@
 
 import { t } from '@/lib/translations';
 import { useAppStore } from '@/lib/store';
+import { useRouter } from 'next/navigation';
 import { Home, MapPin, Building2, GraduationCap, Briefcase, Search as SearchIcon } from 'lucide-react';
 
 export function HomePage() {
-  const { lang, navigate, setFilters, currentUser } = useAppStore();
+  const { lang, setFilters, currentUser } = useAppStore();
+  const router = useRouter();
 
   const cities = [
     { name: 'Lomé', key: 'lome', listings: 6 },
@@ -20,7 +22,7 @@ export function HomePage() {
 
   const handleSearch = (searchTerm: string) => {
     setFilters({ search: searchTerm });
-    navigate('search');
+    router.push('/search');
   };
 
   return (
@@ -96,7 +98,7 @@ export function HomePage() {
               key={city.key}
               onClick={() => {
                 setFilters({ city: city.name });
-                navigate('search');
+                router.push('/search');
               }}
               className="group bg-card border rounded-xl p-4 md:p-5 hover:border-emerald-300 hover:shadow-md transition-all text-left"
             >
@@ -218,9 +220,9 @@ export function HomePage() {
               className="bg-white text-emerald-800 hover:bg-emerald-50 px-6 py-3 rounded-lg font-medium transition-colors"
               onClick={() => {
                 if (currentUser?.role === 'landlord') {
-                  navigate('add-listing');
+                  router.push('/add-listing');
                 } else {
-                  navigate('register');
+                  router.push('/register');
                 }
               }}
             >

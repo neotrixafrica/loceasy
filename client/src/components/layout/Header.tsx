@@ -1,15 +1,19 @@
 'use client';
 
-import { useAppStore, type View } from '@/lib/store';
+import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { t, LANG_LABELS } from '@/lib/translations';
-import { Home, Search, MessageCircle, Heart, User, LayoutDashboard, PlusCircle, ChevronLeft, Bell, WifiOff, Globe } from 'lucide-react';
+import { Home, Search, MessageCircle, Heart, User, PlusCircle, ChevronLeft, Bell, WifiOff, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 
 export function Header() {
-  const { lang, setLang, currentUser, navigate, currentView, notifications } = useAppStore();
+  const { lang, setLang, currentUser, notifications } = useAppStore();
+  const router = useRouter();
+  const pathname = usePathname();
   const [isOnline, setIsOnline] = useState(true);
   const [showLangMenu, setShowLangMenu] = useState(false);
 
@@ -25,25 +29,37 @@ export function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    apiFetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((user) => {
+        if (user) useAppStore.getState().login(user);
+        else useAppStore.getState().logout();
+      })
+      .catch(() => useAppStore.getState().logout());
+  }, []);
+
   const unreadNotifications = notifications.filter((n) => !n.read).length;
 
-  const navItems: { view: View; label: string; icon?: typeof Home }[] = [];
-
-  if (currentUser?.role === 'landlord') {
-    navItems.push({ view: 'landlord-dashboard', label: t('nav.dashboard', lang) });
-    navItems.push({ view: 'add-listing', label: t('nav.addListing', lang), icon: PlusCircle });
-  }
+  const showBack =
+    !!pathname && (
+      pathname.startsWith('/listing') ||
+      pathname === '/booking-form' ||
+      pathname.startsWith('/messages/') ||
+      pathname === '/add-listing' ||
+      pathname === '/notifications'
+    );
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-14 items-center px-4 md:px-6">
         {/* Back button for detail views */}
-        {(currentView === 'listing-detail' || currentView === 'booking-form' || currentView === 'conversation' || currentView === 'add-listing' || currentView === 'notifications') && (
+        {showBack && (
           <Button
             variant="ghost"
             size="icon"
             className="mr-2 md:hidden"
-            onClick={() => useAppStore.getState().goBack()}
+            onClick={() => router.back()}
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
@@ -60,7 +76,7 @@ export function Header() {
         {/* Logo */}
         <button
           className="flex items-center gap-2 font-bold text-lg mr-4 hover:opacity-80 transition-opacity"
-          onClick={() => navigate('home')}
+          onClick={() => router.push('/')}
         >
           <div className="w-8 h-8 bg-emerald-700 rounded-lg flex items-center justify-center">
             <Home className="h-4 w-4 text-white" />
@@ -71,23 +87,29 @@ export function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1 flex-1">
-          <Button variant="ghost" size="sm" onClick={() => navigate('home')}>
+          <Button variant="ghost" size="sm" onClick={() => router.push('/')}>
             {t('nav.home', lang)}
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => navigate('search')}>
+          <Button variant="ghost" size="sm" onClick={() => router.push('/search')}>
             {t('nav.search', lang)}
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => currentUser ? navigate('messages') : navigate('login')}>
+          <Button variant="ghost" size="sm" onClick={() => currentUser ? router.push('/messages') : router.push('/login')}>
             {t('nav.messages', lang)}
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => currentUser ? navigate('favorites') : navigate('login')}>
+          <Button variant="ghost" size="sm" onClick={() => currentUser ? router.push('/favorites') : router.push('/login')}>
             {t('nav.favorites', lang)}
           </Button>
-          {navItems.map((item) => (
-            <Button key={item.view} variant="ghost" size="sm" onClick={() => navigate(item.view)}>
-              {item.label}
-            </Button>
-          ))}
+          {currentUser?.role === 'landlord' && (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/landlord-dashboard')}>
+                {t('nav.dashboard', lang)}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/add-listing')}>
+                <PlusCircle className="h-4 w-4 mr-1" />
+                {t('nav.addListing', lang)}
+              </Button>
+            </>
+          )}
         </nav>
 
         {/* Right side */}
@@ -136,7 +158,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               className="relative"
-              onClick={() => navigate('notifications')}
+              onClick={() => router.push('/notifications')}
             >
               <Bell className="h-4 w-4" />
               {unreadNotifications > 0 && (
@@ -153,7 +175,7 @@ export function Header() {
               variant="ghost"
               size="sm"
               className="flex items-center gap-2"
-              onClick={() => navigate('profile')}
+              onClick={() => router.push('/profile')}
             >
               <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center">
                 <span className="text-xs font-medium text-emerald-700">
@@ -164,10 +186,10 @@ export function Header() {
             </Button>
           ) : (
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" onClick={() => navigate('login')}>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/login')}>
                 {t('nav.login', lang)}
               </Button>
-              <Button size="sm" onClick={() => navigate('register')}>
+              <Button size="sm" onClick={() => router.push('/register')}>
                 {t('nav.register', lang)}
               </Button>
             </div>
@@ -179,40 +201,42 @@ export function Header() {
 }
 
 export function BottomNav() {
-  const { lang, currentView, navigate, currentUser, notifications } = useAppStore();
+  const { lang, currentUser, notifications } = useAppStore();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const unreadNotifications = notifications.filter((n) => !n.read).length;
 
   const tabs = [
-    { view: 'home' as View, label: t('nav.home', lang), icon: Home },
-    { view: 'search' as View, label: t('nav.search', lang), icon: Search },
-    { view: 'messages' as View, label: t('nav.messages', lang), icon: MessageCircle },
-    { view: 'favorites' as View, label: t('nav.favorites', lang), icon: Heart },
-    { view: 'profile' as View, label: t('nav.profile', lang), icon: User },
+    { href: '/', label: t('nav.home', lang), icon: Home },
+    { href: '/search', label: t('nav.search', lang), icon: Search },
+    { href: '/messages', label: t('nav.messages', lang), icon: MessageCircle },
+    { href: '/favorites', label: t('nav.favorites', lang), icon: Heart },
+    { href: '/profile', label: t('nav.profile', lang), icon: User },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center justify-around h-16 px-2">
         {tabs.map((tab) => {
-          const isActive = currentView === tab.view || 
-            (tab.view === 'profile' && !currentUser && currentView === 'login') ||
-            (tab.view === 'profile' && !currentUser && currentView === 'register');
-          
+          const isActive =
+            pathname === tab.href ||
+            (tab.href === '/profile' && !currentUser && (pathname === '/login' || pathname === '/register'));
+
           return (
             <button
-              key={tab.view}
+              key={tab.href}
               className={cn(
                 'flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors relative',
                 isActive
                   ? 'text-emerald-700'
                   : 'text-muted-foreground hover:text-foreground'
               )}
-              onClick={() => navigate(tab.view)}
+              onClick={() => router.push(tab.href)}
             >
               <div className="relative">
                 <tab.icon className={cn('h-5 w-5', isActive && 'font-bold')} />
-                {tab.view === 'profile' && currentUser && unreadNotifications > 0 && (
+                {tab.href === '/profile' && currentUser && unreadNotifications > 0 && (
                   <span className="absolute -top-1.5 -right-2 w-3.5 h-3.5 bg-red-500 text-white text-[8px] rounded-full flex items-center justify-center font-bold">
                     {unreadNotifications > 9 ? '9' : unreadNotifications}
                   </span>

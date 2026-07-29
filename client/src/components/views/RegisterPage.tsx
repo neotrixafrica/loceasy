@@ -14,9 +14,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export function RegisterPage() {
-  const { lang, navigate } = useAppStore();
+  const { lang } = useAppStore();
+  const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,7 +40,7 @@ export function RegisterPage() {
         const user = await res.json();
         useAppStore.getState().login(user);
         toast.success(t('auth.register.success', lang));
-        navigate('home');
+        router.push('/');
       } else {
         const data = await res.json();
         toast.error(data.error || t('common.error', lang));
@@ -129,7 +131,7 @@ export function RegisterPage() {
                 {t('auth.hasAccount', lang)}{' '}
                 <button
                   className="text-emerald-700 font-medium hover:underline"
-                  onClick={() => navigate('login')}
+                  onClick={() => router.push('/login')}
                 >
                   {t('nav.login', lang)}
                 </button>

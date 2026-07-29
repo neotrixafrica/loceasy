@@ -17,9 +17,11 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { PlusCircle, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function AddListingPage() {
-  const { lang, navigate, currentUser } = useAppStore();
+  const { lang, currentUser } = useAppStore();
+  const router = useRouter();
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -40,7 +42,7 @@ export function AddListingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser) { navigate('login'); return; }
+    if (!currentUser) { router.push('/login'); return; }
 
     setLoading(true);
     try {
@@ -59,7 +61,7 @@ export function AddListingPage() {
       });
       if (res.ok) {
         toast.success(t('addListing.success', lang));
-        navigate('landlord-dashboard');
+        router.push('/landlord-dashboard');
       } else {
         toast.error(t('common.error', lang));
       }
@@ -91,7 +93,7 @@ export function AddListingPage() {
   };
 
   if (!currentUser) {
-    navigate('login');
+    router.push('/login');
     return null;
   }
 
@@ -279,7 +281,7 @@ export function AddListingPage() {
 
         {/* Submit */}
         <div className="flex gap-3">
-          <Button type="button" variant="outline" className="flex-1" onClick={() => navigate('landlord-dashboard')}>
+          <Button type="button" variant="outline" className="flex-1" onClick={() => router.push('/landlord-dashboard')}>
             {t('common.cancel', lang)}
           </Button>
           <Button type="submit" className="flex-1" disabled={loading}>

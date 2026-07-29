@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '@/lib/store';
 import { apiFetch } from '@/lib/api';
 import { t } from '@/lib/translations';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,13 +34,14 @@ interface Message {
   receiver: { id: string; name: string; avatar: string | null };
 }
 
-export function MessagesPage() {
-  const { lang, currentUser, navigate, navigationData } = useAppStore();
+export function MessagesPage({ partnerId }: { partnerId?: string }) {
+  const { lang, currentUser } = useAppStore();
+  const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [activeConversation, setActiveConversation] = useState<string | null>(
-    navigationData.partnerId as string | null
+    partnerId || null
   );
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -66,7 +68,7 @@ export function MessagesPage() {
       if (res.ok) {
         const data = await res.json();
         setConversations(data);
-        if (!activeConversation && data.length > 0 && !navigationData.partnerId) {
+        if (!activeConversation && data.length > 0 && !partnerId) {
           setActiveConversation(data[0].partnerId);
         }
       }
@@ -99,7 +101,7 @@ export function MessagesPage() {
           content: newMessage,
           senderId: currentUser.id,
           receiverId: activeConversation,
-          listingId: navigationData.listingId || null,
+          listingId: null,
         }),
       });
       if (res.ok) {
@@ -128,7 +130,7 @@ export function MessagesPage() {
         <MessageCircle className="h-12 w-12 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">{t('messages.noMessages', lang)}</h3>
         <p className="text-muted-foreground text-sm text-center mb-4">{t('messages.noMessages.desc', lang)}</p>
-        <Button onClick={() => navigate('login')}>{t('nav.login', lang)}</Button>
+        <Button onClick={() => router.push('/login')}>{t('nav.login', lang)}</Button>
       </div>
     );
   }

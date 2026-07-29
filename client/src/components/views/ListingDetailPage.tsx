@@ -3,6 +3,7 @@
 import { useAppStore } from '@/lib/store';
 import { apiFetch } from '@/lib/api';
 import { t } from '@/lib/translations';
+import { useRouter } from 'next/navigation';
 import { Heart, MapPin, BedDouble, Maximize, ChevronLeft, ChevronRight, X, MessageCircle, CalendarDays, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,12 +48,28 @@ interface Listing {
   };
 }
 
-export function ListingDetailPage() {
-  const { lang, navigate, navigationData, currentUser } = useAppStore();
-  const listing = navigationData.listing as Listing | undefined;
+export function ListingDetailPage({ listing: initialListing, listingId }: { listing?: Listing; listingId?: string }) {
+  const { lang, currentUser } = useAppStore();
+  const router = useRouter();
+  const [listing, setListing] = useState<Listing | undefined>(initialListing);
+  const [loading, setLoading] = useState(!initialListing && !!listingId);
   const [currentImage, setCurrentImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [showBooking, setShowBooking] = useState(false);
+
+  useEffect(() => {
+    if (initialListing) {
+      setListing(initialListing);
+      setLoading(false);
+      return;
+    }
+    if (!listingId) return;
+    setLoading(true);
+    apiFetch(`/api/listings/${listingId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setListing(data))
+      .catch(() => setListing(undefined))
+      .finally(() => setLoading(false));
+  }, [initialListing, listingId]);
 
   const images = listing ? listing.images : [];
   const amenities = listing ? listing.amenities : [];
@@ -66,6 +83,14 @@ export function ListingDetailPage() {
     }
   }, [currentUser, listing]);
 
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-muted-foreground">{t('common.loading', lang)}</p>
+      </div>
+    );
+  }
+
   if (!listing) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -76,7 +101,7 @@ export function ListingDetailPage() {
 
   const toggleFavorite = async () => {
     if (!currentUser) {
-      navigate('login');
+      router.push('/login');
       return;
     }
     try {
@@ -98,18 +123,18 @@ export function ListingDetailPage() {
 
   const handleContact = () => {
     if (!currentUser) {
-      navigate('login');
+      router.push('/login');
       return;
     }
-    navigate('conversation', { partnerId: listing.landlord.id, partnerName: listing.landlord.name, listingId: listing.id });
+    router.push(`/messages/${listing.landlord.id}`);
   };
 
   const handleBooking = () => {
     if (!currentUser) {
-      navigate('login');
+      router.push('/login');
       return;
     }
-    navigate('booking-form', { listing });
+    router.push(`/booking-form?listingId=${listing.id}`);
   };
 
   const typeLabel = t(`type.${listing.type}`, lang);
@@ -121,7 +146,7 @@ export function ListingDetailPage() {
     <div className="flex-1 max-w-4xl mx-auto w-full">
       {/* Back button */}
       <div className="sticky top-14 z-40 bg-background/95 backdrop-blur border-b px-4 md:px-6 py-2 flex items-center gap-2 md:hidden">
-        <Button variant="ghost" size="sm" onClick={() => useAppStore.getState().goBack()}>
+        <Button variant="ghost" size="sm" onClick={() => router.back()}>
           <ChevronLeft className="h-4 w-4 mr-1" />
           {t('detail.back', lang)}
         </Button>

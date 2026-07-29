@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Building2, Clock, CheckCircle, XCircle,
   PlusCircle, Trash2, Eye,
@@ -35,7 +36,8 @@ interface Booking {
 }
 
 export function LandlordDashboard() {
-  const { lang, navigate, currentUser } = useAppStore();
+  const { lang, currentUser } = useAppStore();
+  const router = useRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [activeTab, setActiveTab] = useState<'listings' | 'bookings'>('listings');
@@ -110,7 +112,7 @@ export function LandlordDashboard() {
   };
 
   if (!currentUser) {
-    navigate('login');
+    router.push('/login');
     return null;
   }
 
@@ -123,7 +125,7 @@ export function LandlordDashboard() {
             {lang === 'fr' ? 'Bienvenue' : 'Welcome'}, {currentUser.name}
           </p>
         </div>
-        <Button onClick={() => navigate('add-listing')}>
+        <Button onClick={() => router.push('/add-listing')}>
           <PlusCircle className="h-4 w-4 mr-2" />
           {t('dashboard.listing.add', lang)}
         </Button>
@@ -221,7 +223,7 @@ export function LandlordDashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => navigate('listing-detail', { listing })}>
+                    <Button variant="ghost" size="icon" onClick={() => router.push(`/listing/${listing.id}`)}>
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDeleteListing(listing.id)}>

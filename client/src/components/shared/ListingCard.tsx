@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import { t } from '@/lib/translations';
 import { apiFetch } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 import { Heart, MapPin, BedDouble, Maximize } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -24,7 +25,8 @@ interface Listing {
 }
 
 export function ListingCard({ listing }: { listing: Listing }) {
-  const { lang, navigate, currentUser } = useAppStore();
+  const { lang, currentUser } = useAppStore();
+  const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -42,7 +44,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentUser) {
-      navigate('login');
+      router.push('/login');
       return;
     }
     try {
@@ -63,15 +65,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
   };
 
   const handleClick = async () => {
-    try {
-      const res = await apiFetch(`/api/listings/${listing.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        navigate('listing-detail', { listing: data });
-      }
-    } catch (error) {
-      console.error('Failed to fetch listing:', error);
-    }
+    router.push(`/listing/${listing.id}`);
   };
 
   const typeColor = listing.type === 'chambre' ? 'bg-emerald-100 text-emerald-800' :

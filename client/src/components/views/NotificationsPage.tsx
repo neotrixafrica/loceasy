@@ -5,9 +5,11 @@ import { t } from '@/lib/translations';
 import { Bell, Check, CheckCheck, Trash2, ChevronLeft, MapPin, MessageCircle, CalendarDays, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 
 export function NotificationsPage() {
-  const { lang, notifications, markNotificationRead, markAllNotificationsRead, clearNotifications, navigate } = useAppStore();
+  const { lang, notifications, markNotificationRead, markAllNotificationsRead, clearNotifications } = useAppStore();
+  const router = useRouter();
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -54,7 +56,7 @@ export function NotificationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => useAppStore.getState().goBack()}>
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => router.back()}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div>
@@ -105,10 +107,11 @@ export function NotificationsPage() {
               onClick={() => {
                 if (!notification.read) markNotificationRead(notification.id);
                 if (notification.link) {
-                  // Parse link to navigate
                   const parts = notification.link.split(':');
-                  if (parts.length === 2) {
-                    navigate(parts[0] as any, { partnerId: parts[1] });
+                  if (parts.length === 2 && parts[0] === 'conversation') {
+                    router.push(`/messages/${parts[1]}`);
+                  } else if (parts[0] === 'messages') {
+                    router.push('/messages');
                   }
                 }
               }}

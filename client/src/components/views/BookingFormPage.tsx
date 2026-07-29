@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import { apiFetch } from '@/lib/api';
 import { t } from '@/lib/translations';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,13 +22,27 @@ interface Listing {
   landlord: { id: string; name: string };
 }
 
-export function BookingFormPage() {
-  const { lang, navigate, navigationData, currentUser } = useAppStore();
-  const listing = navigationData.listing as Listing | undefined;
+export function BookingFormPage({ listingId }: { listingId?: string }) {
+  const { lang, currentUser } = useAppStore();
+  const router = useRouter();
+  const [listing, setListing] = useState<Listing | null>(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(!!listingId);
+
+  useEffect(() => {
+    if (!listingId) {
+      setFetching(false);
+      return;
+    }
+    apiFetch(`/api/listings/${listingId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setListing(data))
+      .catch(() => setListing(null))
+      .finally(() => setFetching(false));
+  }, [listingId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +63,7 @@ export function BookingFormPage() {
       });
       if (res.ok) {
         toast.success(t('booking.success', lang));
-        navigate('listing-detail', { listing });
+        router.push(`/listing/${listing.id}`);
       } else {
         toast.error(t('common.error', lang));
       }
@@ -58,6 +73,14 @@ export function BookingFormPage() {
       setLoading(false);
     }
   };
+
+  if (fetching) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-muted-foreground">{t('common.loading', lang)}</p>
+      </div>
+    );
+  }
 
   if (!listing) {
     return (
@@ -153,7 +176,7 @@ export function BookingFormPage() {
         )}
 
         <div className="flex gap-3">
-          <Button type="button" variant="outline" className="flex-1" onClick={() => navigate('listing-detail', { listing })}>
+          <Button type="button" variant="outline" className="flex-1" onClick={() => router.push(`/listing/${listing.id}`)}>
             {t('common.cancel', lang)}
           </Button>
           <Button type="submit" className="flex-1" disabled={loading}>

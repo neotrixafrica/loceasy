@@ -11,7 +11,8 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 export function LoginPage() {
-  const { lang, navigate } = useAppStore();
+  const { lang } = useAppStore();
+  const router = useRouter();
   const [email, setEmail] = useState('komlan@student.tg');
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ export function LoginPage() {
         const user = await res.json();
         useAppStore.getState().login(user);
         toast.success(t('auth.success', lang));
-        navigate('home');
+        router.push('/');
       } else {
         toast.error(t('auth.error', lang));
       }
@@ -87,7 +88,7 @@ export function LoginPage() {
                 {t('auth.noAccount', lang)}{' '}
                 <button
                   className="text-emerald-700 font-medium hover:underline"
-                  onClick={() => navigate('register')}
+                  onClick={() => router.push('/register')}
                 >
                   {t('nav.register', lang)}
                 </button>

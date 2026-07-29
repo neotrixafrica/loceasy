@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import { apiFetch } from '@/lib/api';
 import { t, TOGO_CITIES, TOGO_QUARTIERS } from '@/lib/translations';
+import { useRouter } from 'next/navigation';
 import { ListingCard } from '@/components/shared/ListingCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,7 +48,8 @@ interface Listing {
 }
 
 export function SearchPage() {
-  const { lang, filters, setFilters, resetFilters, navigate } = useAppStore();
+  const { lang, filters, setFilters, resetFilters } = useAppStore();
+  const router = useRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -109,7 +111,7 @@ export function SearchPage() {
       onClick: () => {
         apiFetch(`/api/listings/${l.id}`)
           .then((res) => res.json())
-          .then((data) => navigate('listing-detail', { listing: data }))
+          .then((data) => router.push(`/listing/${data.id}`))
           .catch(() => {});
       },
     }));

@@ -12,9 +12,11 @@ import {
   LogOut, Building2, MessageCircle, Heart, Settings, ChevronRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export function ProfilePage() {
-  const { lang, currentUser, navigate, logout } = useAppStore();
+  const { lang, currentUser, logout } = useAppStore();
+  const router = useRouter();
   const [bookings, setBookings] = useState<any[]>([]);
 
   useEffect(() => {
@@ -43,11 +45,12 @@ export function ProfilePage() {
       // ignore network errors
     }
     logout();
+    router.push('/');
     toast.success(lang === 'fr' ? 'Déconnecté avec succès' : 'Logged out successfully');
   };
 
   if (!currentUser) {
-    navigate('login');
+    router.push('/login');
     return null;
   }
 
@@ -111,7 +114,7 @@ export function ProfilePage() {
         <Button
           variant="outline"
           className="h-auto py-4 flex-col gap-2"
-          onClick={() => navigate('messages')}
+          onClick={() => router.push('/messages')}
         >
           <MessageCircle className="h-5 w-5" />
           <span className="text-sm">{t('nav.messages', lang)}</span>
@@ -119,7 +122,7 @@ export function ProfilePage() {
         <Button
           variant="outline"
           className="h-auto py-4 flex-col gap-2"
-          onClick={() => navigate('favorites')}
+          onClick={() => router.push('/favorites')}
         >
           <Heart className="h-5 w-5" />
           <span className="text-sm">{t('nav.favorites', lang)}</span>
@@ -129,7 +132,7 @@ export function ProfilePage() {
             <Button
               variant="outline"
               className="h-auto py-4 flex-col gap-2"
-              onClick={() => navigate('landlord-dashboard')}
+              onClick={() => router.push('/landlord-dashboard')}
             >
               <Building2 className="h-5 w-5" />
               <span className="text-sm">{t('nav.dashboard', lang)}</span>
@@ -137,7 +140,7 @@ export function ProfilePage() {
             <Button
               variant="outline"
               className="h-auto py-4 flex-col gap-2"
-              onClick={() => navigate('add-listing')}
+              onClick={() => router.push('/add-listing')}
             >
               <Building2 className="h-5 w-5" />
               <span className="text-sm">{t('nav.addListing', lang)}</span>
