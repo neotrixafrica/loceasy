@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/session';
+import { bookingSchema } from '@/lib/validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -50,14 +51,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { startDate, endDate, message, listingId } = body;
-
-    if (!startDate || !endDate || !listingId) {
+    const parsed = bookingSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: parsed.error.errors.map((e) => e.message).join(', ') },
         { status: 400 }
       );
     }
+
+    const { startDate, endDate, message, listingId } = parsed.data;
 
     const booking = await db.booking.create({
       data: {

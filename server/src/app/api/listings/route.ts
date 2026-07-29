@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/session';
+import { listingSchema } from '@/lib/validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,34 +65,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const {
-      title, description, price, type, city, quartier, address,
-      latitude, longitude, rooms, area, amenities, images, rules,
-    } = body;
-
-    if (!title || !description || !price || !type || !city) {
+    const parsed = listingSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: parsed.error.errors.map((e) => e.message).join(', ') },
         { status: 400 }
       );
     }
 
+    const data = parsed.data;
+
     const listing = await db.listing.create({
       data: {
-        title,
-        description,
-        price: Number(price),
-        type,
-        city,
-        quartier: quartier || null,
-        address: address || null,
-        latitude: latitude || null,
-        longitude: longitude || null,
-        rooms: rooms || 1,
-        area: area || null,
-        amenities: amenities || [],
-        images: images || [],
-        rules: rules || null,
+        ...data,
         landlordId: currentUser.id,
       },
     });

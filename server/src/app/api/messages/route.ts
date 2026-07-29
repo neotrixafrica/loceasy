@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/session';
+import { messageSchema } from '@/lib/validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -93,14 +94,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { content, receiverId, listingId } = body;
-
-    if (!content || !receiverId) {
+    const parsed = messageSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: parsed.error.errors.map((e) => e.message).join(', ') },
         { status: 400 }
       );
     }
+
+    const { content, receiverId, listingId } = parsed.data;
 
     const message = await db.message.create({
       data: {

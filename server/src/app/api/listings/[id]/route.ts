@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/session';
+import { listingSchema } from '@/lib/validation';
 
 export async function GET(
   request: NextRequest,
@@ -47,7 +48,15 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { landlordId, ...updateData } = body;
+    const parsed = listingSchema.partial().safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors.map((e) => e.message).join(', ') },
+        { status: 400 }
+      );
+    }
+
+    const { ...updateData } = parsed.data;
 
     const listing = await db.listing.update({
       where: { id },

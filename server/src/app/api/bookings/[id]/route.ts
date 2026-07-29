@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/session';
+import { bookingStatusSchema } from '@/lib/validation';
 
 const ALLOWED_STATUSES = ['accepted', 'rejected', 'cancelled', 'pending'];
 
@@ -30,7 +31,15 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { status } = body;
+    const parsed = bookingStatusSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors.map((e) => e.message).join(', ') },
+        { status: 400 }
+      );
+    }
+
+    const { status } = parsed.data;
 
     if (!ALLOWED_STATUSES.includes(status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/session';
+import { favoriteSchema } from '@/lib/validation';
 
 export async function GET() {
   try {
@@ -35,11 +36,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { listingId } = body;
-
-    if (!listingId) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const parsed = favoriteSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors.map((e) => e.message).join(', ') },
+        { status: 400 }
+      );
     }
+
+    const { listingId } = parsed.data;
 
     const favorite = await db.favorite.create({
       data: { userId: currentUser.id, listingId },

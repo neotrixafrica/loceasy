@@ -2,18 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyPassword, signToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { loginSchema } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const parsed = loginSchema.safeParse(body);
 
-    if (!email || !password) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: parsed.error.errors.map((e) => e.message).join(', ') },
         { status: 400 }
       );
     }
+
+    const { email, password } = parsed.data;
 
     const user = await db.user.findUnique({ where: { email } });
 
