@@ -21,6 +21,7 @@ interface Listing {
   city: string;
   quartier: string | null;
   images: string[];
+  averageRating?: number;
   landlord?: Landlord;
 }
 
@@ -123,6 +124,13 @@ export function ListingCard({ listing }: { listing: Listing }) {
             )}
           />
         </button>
+
+        {!!listing.averageRating && listing.averageRating > 0 && (
+          <div className="absolute right-3 top-12 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 shadow-sm">
+            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+            <span className="text-[10px] font-semibold text-slate-900">{listing.averageRating.toFixed(1)}</span>
+          </div>
+        )}
       </div>
 
       <div className="mt-3 space-y-1">
@@ -130,10 +138,12 @@ export function ListingCard({ listing }: { listing: Listing }) {
           <h3 className="line-clamp-1 text-sm font-semibold text-slate-900">
             {listing.title}
           </h3>
-          <div className="flex shrink-0 items-center gap-1 text-xs text-slate-900">
-            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-            <span>4.6</span>
-          </div>
+          {listing.averageRating && listing.averageRating > 0 && (
+            <div className="flex shrink-0 items-center gap-1 text-xs text-slate-900">
+              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+              <span>{listing.averageRating.toFixed(1)}</span>
+            </div>
+          )}
         </div>
 
         <p className="flex items-center gap-1 text-sm text-slate-500 line-clamp-1">

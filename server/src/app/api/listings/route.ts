@@ -44,11 +44,20 @@ export async function GET(request: NextRequest) {
         landlord: {
           select: { id: true, name: true, avatar: true, phone: true, city: true },
         },
+        _count: { select: { reviews: true } },
+        reviews: { select: { rating: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json(listings);
+    const result = listings.map((l) => {
+      const avg = l.reviews.length
+        ? Number((l.reviews.reduce((sum, r) => sum + r.rating, 0) / l.reviews.length).toFixed(1))
+        : 0;
+      return { ...l, averageRating: avg, reviewCount: l._count.reviews };
+    });
+
+    return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to fetch listings' },

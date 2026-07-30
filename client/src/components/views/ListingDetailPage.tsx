@@ -20,6 +20,7 @@ import {
   Home,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { ReviewsSection } from '@/components/shared/ReviewsSection';
 
 const MapView = dynamic(() => import('@/components/shared/MapView'), {
   ssr: false,
@@ -78,6 +79,7 @@ export function ListingDetailPage({
   const [loading, setLoading] = useState(!initialListing && !!listingId);
   const [currentImage, setCurrentImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [reviewStats, setReviewStats] = useState({ average: 0, count: 0 });
 
   useEffect(() => {
     if (initialListing) {
@@ -102,6 +104,18 @@ export function ListingDetailPage({
         .catch(() => {});
     }
   }, [currentUser, listing]);
+
+  useEffect(() => {
+    if (!listing) return;
+    apiFetch(`/api/reviews?listingId=${listing.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          setReviewStats({ average: data.average, count: data.count });
+        }
+      })
+      .catch(() => {});
+  }, [listing]);
 
   if (loading) {
     return (
@@ -269,7 +283,10 @@ export function ListingDetailPage({
                 </p>
                 <div className="mt-2 flex items-center gap-1 text-sm">
                   <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                  <span className="font-medium text-slate-900">4.6</span>
+                  <span className="font-medium text-slate-900">
+                    {reviewStats.average > 0 ? reviewStats.average.toFixed(1) : '—'}
+                  </span>
+                  <span className="text-slate-500">· {reviewStats.count} avis</span>
                   <span className="text-slate-500">· {typeLabels[listing.type] || listing.type}</span>
                 </div>
               </div>
@@ -372,6 +389,9 @@ export function ListingDetailPage({
                   </div>
                 </div>
               </div>
+
+              {/* Reviews */}
+              <ReviewsSection listingId={listing.id} />
 
               {/* Map */}
               {listing.latitude && listing.longitude && (
