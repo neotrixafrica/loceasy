@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         landlord: {
-          select: { id: true, name: true, avatar: true, phone: true, city: true },
+          select: { id: true, name: true, avatar: true, phone: true, city: true, verified: true },
         },
         _count: { select: { reviews: true } },
         reviews: { select: { rating: true } },

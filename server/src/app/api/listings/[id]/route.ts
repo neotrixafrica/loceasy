@@ -13,7 +13,7 @@ export async function GET(
       where: { id },
       include: {
         landlord: {
-          select: { id: true, name: true, avatar: true, phone: true, city: true, email: true },
+          select: { id: true, name: true, avatar: true, phone: true, city: true, email: true, verified: true },
         },
       },
     });

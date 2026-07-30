@@ -48,6 +48,19 @@ export function ProfilePage() {
     }
   }, [currentUser]);
 
+  const handleVerify = async () => {
+    try {
+      const res = await apiFetch('/api/verify', { method: 'POST' });
+      if (res.ok) {
+        const user = await res.json();
+        useAppStore.getState().login(user);
+        toast.success(lang === 'fr' ? 'Compte vérifié' : 'Account verified');
+      }
+    } catch (error) {
+      toast.error(lang === 'fr' ? 'Échec de la vérification' : 'Verification failed');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await apiFetch('/api/auth/logout', {
@@ -124,6 +137,19 @@ export function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {!currentUser.verified && (
+        <div className="mb-6 p-4 border border-slate-200 rounded-xl bg-slate-50">
+          <p className="text-sm text-slate-600 mb-3">
+            {lang === 'fr'
+              ? 'Vérifiez votre compte pour gagner la confiance des propriétaires et locataires.'
+              : 'Verify your account to build trust with landlords and tenants.'}
+          </p>
+          <Button onClick={handleVerify} className="w-full">
+            {lang === 'fr' ? 'Vérifier mon compte' : 'Verify my account'}
+          </Button>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3 mb-6">
