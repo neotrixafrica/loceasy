@@ -8,16 +8,29 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  User, Mail, Phone, MapPin, CalendarDays,
-  LogOut, Building2, MessageCircle, Heart, Settings, ChevronRight,
+  Mail, Phone, MapPin, CalendarDays,
+  LogOut, Building2, MessageCircle, Heart,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
+interface Booking {
+  id: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  listing: {
+    title: string;
+    city: string;
+    quartier: string | null;
+    price: number;
+  } | null;
+}
+
 export function ProfilePage() {
   const { lang, currentUser, logout } = useAppStore();
   const router = useRouter();
-  const [bookings, setBookings] = useState<unknown[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
 
   useEffect(() => {
     if (currentUser) {
@@ -49,10 +62,13 @@ export function ProfilePage() {
     toast.success(lang === 'fr' ? 'Déconnecté avec succès' : 'Logged out successfully');
   };
 
-  if (!currentUser) {
-    router.push('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!currentUser) {
+      router.push('/login');
+    }
+  }, [currentUser, router]);
+
+  if (!currentUser) return null;
 
   const statusColor = (status: string) => {
     switch (status) {
