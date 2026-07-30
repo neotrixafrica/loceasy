@@ -64,7 +64,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
 
   const fetchConversations = async () => {
     try {
-      const res = await apiFetch(`/api/messages?userId=${currentUser?.id}`);
+      const res = await apiFetch('/api/messages');
       if (res.ok) {
         const data = await res.json();
         setConversations(data);
@@ -81,7 +81,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
 
   const fetchMessages = async (partnerId: string) => {
     try {
-      const res = await apiFetch(`/api/messages?senderId=${currentUser?.id}&receiverId=${partnerId}`);
+      const res = await apiFetch(`/api/messages?partnerId=${partnerId}`);
       if (res.ok) {
         const data = await res.json();
         setMessages(data);
@@ -151,7 +151,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
           ) : (
             conversations.map((conv) => (
               <button
-                key={conv.partnerId}
+                key={conv.partnerId ?? conv.partnerName + conv.lastMessage.createdAt}
                 className={`w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors border-b text-left ${
                   activeConversation === conv.partnerId ? 'bg-emerald-50' : ''
                 }`}
@@ -218,7 +218,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
               {messages.map((msg) => {
                 const isMine = msg.senderId === currentUser?.id;
                 return (
-                  <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                  <div key={msg.id ?? `${msg.senderId}-${msg.createdAt}`} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                     <div
                       className={`max-w-[75%] px-3 py-2 rounded-xl text-sm ${
                         isMine
