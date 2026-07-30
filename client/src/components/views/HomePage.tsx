@@ -1,234 +1,175 @@
 'use client';
 
-import { t } from '@/lib/translations';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import { Home, MapPin, Building2, GraduationCap, Briefcase, Search as SearchIcon } from 'lucide-react';
+import { ListingCard } from '@/components/shared/ListingCard';
+import { Search, BedDouble, Building, Building2, Home, Briefcase } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface Listing {
+  id: string;
+  title: string;
+  price: number;
+  type: string;
+  city: string;
+  quartier: string | null;
+  images: string[];
+  landlord?: { id: string; name: string; verified?: boolean };
+}
+
+const categories = [
+  { key: 'chambre', label: 'Chambres', icon: BedDouble },
+  { key: 'studio', label: 'Studios', icon: Building },
+  { key: 'appartement', label: 'Appartements', icon: Building2 },
+  { key: 'maison', label: 'Maisons', icon: Home },
+  { key: 'bureau', label: 'Bureaux', icon: Briefcase },
+];
+
+const heroImage = 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1400&q=80';
 
 export function HomePage() {
-  const { lang, setFilters, currentUser } = useAppStore();
+  const { currentUser, setFilters } = useAppStore();
   const router = useRouter();
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
-  const cities = [
-    { name: 'Lomé', key: 'lome', listings: 6 },
-    { name: 'Sokodé', key: 'sokode', listings: 1 },
-    { name: 'Kara', key: 'kara', listings: 2 },
-    { name: 'Atakpamé', key: 'atakpame', listings: 1 },
-    { name: 'Kpalimé', key: 'kpalime', listings: 1 },
-    { name: 'Tsévié', key: 'tsevie', listings: 1 },
-    { name: 'Aného', key: 'aneho', listings: 1 },
-    { name: 'Dapaong', key: 'dapaong', listings: 1 },
-  ];
+  useEffect(() => {
+    apiFetch('/api/listings?city=')
+      .then((res) => res.json())
+      .then((data: Listing[]) => setListings(data.slice(0, 8)))
+      .catch(() => setListings([]))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleSearch = (searchTerm: string) => {
-    setFilters({ search: searchTerm });
+  const handleSearch = () => {
+    setFilters({ search });
+    router.push('/search');
+  };
+
+  const handleCategory = (key: string) => {
+    setFilters({ type: key });
     router.push('/search');
   };
 
   return (
-    <div className="flex-1">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-900 text-white">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
-        <div className="container mx-auto px-4 md:px-6 py-12 md:py-20 relative">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">
-              {t('hero.title', lang)}
-            </h1>
-            <p className="text-emerald-100 text-base md:text-lg mb-8 max-w-2xl mx-auto">
-              {t('hero.subtitle', lang)}
-            </p>
+    <div className="flex-1 bg-white">
+      {/* Hero */}
+      <section className="relative h-[420px] w-full overflow-hidden md:h-[520px]">
+        <img
+          src={heroImage}
+          alt="Intérieur"
+          className="absolute inset-0 h-full w-full object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 via-slate-900/30 to-slate-900/50" />
 
-            {/* Search Bar */}
-            <div className="bg-white rounded-xl shadow-lg p-2 max-w-xl mx-auto flex items-center gap-2">
-              <div className="flex-1 relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
+          <h1 className="max-w-2xl text-3xl font-semibold text-white md:text-5xl">
+            Trouvez votre prochain logement
+          </h1>
+          <p className="mt-3 max-w-lg text-base text-white/90 md:text-lg">
+            Chambres, studios et appartements partout au Togo.
+          </p>
+
+          {/* Floating search */}
+          <div className="mt-8 w-full max-w-2xl rounded-full bg-white p-1.5 shadow-xl">
+            <div className="flex items-center gap-2 pr-2">
+              <div className="flex flex-1 items-center gap-2 pl-4">
+                <Search className="h-4 w-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder={t('hero.search.placeholder', lang)}
-                  className="w-full pl-10 pr-4 py-3 text-sm bg-transparent text-foreground outline-none placeholder:text-muted-foreground"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSearch(e.currentTarget.value);
-                    }
-                  }}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="Ville, quartier..."
+                  className="h-11 w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
                 />
               </div>
               <button
-                className="bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-3 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
-                onClick={() => {
-                  const input = document.querySelector('input[type="text"]') as HTMLInputElement;
-                  if (input) handleSearch(input.value);
-                }}
+                onClick={handleSearch}
+                className="flex h-11 items-center gap-2 rounded-full bg-emerald-600 px-5 text-sm font-medium text-white transition hover:bg-emerald-700"
               >
-                {t('hero.search.button', lang)}
+                Rechercher
               </button>
             </div>
-
-            {/* Quick Stats */}
-            <div className="flex items-center justify-center gap-6 md:gap-10 mt-8">
-              {[
-                { value: '14', label: t('hero.stats.listings', lang) },
-                { value: '10', label: t('hero.stats.cities', lang) },
-                { value: '4', label: t('hero.stats.users', lang) },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold">{stat.value}</div>
-                  <div className="text-emerald-200 text-xs md:text-sm">{stat.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Popular Cities */}
-      <section className="container mx-auto px-4 md:px-6 py-10 md:py-14">
-        <div className="text-center mb-8">
-          <h2 className="text-xl md:text-2xl font-bold text-foreground mb-2">
-            {t('cities.title', lang)}
-          </h2>
-          <p className="text-muted-foreground text-sm md:text-base">
-            {t('cities.subtitle', lang)}
-          </p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
-          {cities.map((city) => (
-            <button
-              key={city.key}
-              onClick={() => {
-                setFilters({ city: city.name });
-                router.push('/search');
-              }}
-              className="group bg-card border rounded-xl p-4 md:p-5 hover:border-emerald-300 hover:shadow-md transition-all text-left"
-            >
-              <div className="w-10 h-10 rounded-lg bg-emerald-50 group-hover:bg-emerald-100 flex items-center justify-center mb-3 transition-colors">
-                <Building2 className="h-5 w-5 text-emerald-700" />
-              </div>
-              <h3 className="font-semibold text-sm md:text-base text-foreground">
-                {city.name}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                {city.listings} {t('cities.listings', lang)}
-              </p>
-            </button>
-          ))}
+      {/* Categories */}
+      <section className="border-b border-slate-100 bg-white py-6">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-2">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <button
+                  key={cat.key}
+                  onClick={() => handleCategory(cat.key)}
+                  className={cn(
+                    'flex shrink-0 flex-col items-center gap-2 border-b-2 border-transparent pb-2 pt-1 text-xs font-medium text-slate-500 transition hover:text-slate-900',
+                    'hover:border-slate-900'
+                  )}
+                >
+                  <Icon className="h-6 w-6" />
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      {/* How it Works */}
-      <section className="bg-muted/50 py-10 md:py-14">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="text-center mb-8">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-2">
-              {t('how.title', lang)}
-            </h2>
-            <p className="text-muted-foreground text-sm md:text-base">
-              {t('how.subtitle', lang)}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {[
-              {
-                step: '1',
-                icon: SearchIcon,
-                title: t('how.step1.title', lang),
-                desc: t('how.step1.desc', lang),
-              },
-              {
-                step: '2',
-                icon: Building2,
-                title: t('how.step2.title', lang),
-                desc: t('how.step2.desc', lang),
-              },
-              {
-                step: '3',
-                icon: Home,
-                title: t('how.step3.title', lang),
-                desc: t('how.step3.desc', lang),
-              },
-            ].map((item) => (
-              <div
-                key={item.step}
-                className="bg-card rounded-xl p-6 border text-center hover:shadow-md transition-shadow"
-              >
-                <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="h-7 w-7 text-emerald-700" />
-                </div>
-                <div className="w-7 h-7 rounded-full bg-emerald-700 text-white text-xs font-bold flex items-center justify-center mx-auto mb-3">
-                  {item.step}
-                </div>
-                <h3 className="font-semibold text-base mb-2">{item.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {item.desc}
-                </p>
+      {/* Popular listings */}
+      <section className="mx-auto max-w-7xl px-4 py-10 md:py-14">
+        <h2 className="mb-6 text-xl font-semibold text-slate-900 md:text-2xl">
+          Logements populaires
+        </h2>
+
+        {loading ? (
+          <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="space-y-3">
+                <div className="aspect-[20/19] animate-pulse rounded-xl bg-slate-100" />
+                <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
+                <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
               </div>
             ))}
           </div>
-        </div>
+        ) : listings.length === 0 ? (
+          <p className="text-sm text-slate-500">Aucun logement disponible.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+            {listings.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Target Audience */}
-      <section className="container mx-auto px-4 md:px-6 py-10 md:py-14">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          <div className="bg-card border rounded-xl p-6 flex items-start gap-4">
-            <div className="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-              <GraduationCap className="h-6 w-6 text-amber-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-base mb-1">
-                {lang === 'fr' ? 'Étudiants' : 'Students'}
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {lang === 'fr'
-                  ? 'Des chambres abordables près des universités et écoles. Meublées, avec internet et toutes les commodités pour réussir vos études.'
-                  : 'Affordable rooms near universities and schools. Furnished, with internet and all amenities to succeed in your studies.'}
-              </p>
-            </div>
-          </div>
-          <div className="bg-card border rounded-xl p-6 flex items-start gap-4">
-            <div className="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-              <Briefcase className="h-6 w-6 text-amber-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-base mb-1">
-                {lang === 'fr' ? 'Fonctionnaires' : 'Civil Servants'}
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {lang === 'fr'
-                  ? 'Des studios et appartements confortables pour les fonctionnaires affectés. Proche des administrations et services publics.'
-                  : 'Comfortable studios and apartments for civil servants on assignment. Close to administrations and public services.'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA for landlords */}
+      {/* CTA landlord */}
       {(!currentUser || currentUser.role === 'landlord') && (
-        <section className="bg-emerald-700 text-white py-10 md:py-14">
-          <div className="container mx-auto px-4 md:px-6 text-center">
-            <h2 className="text-xl md:text-2xl font-bold mb-3">
-              {lang === 'fr' ? 'Propriétaire ?' : 'Landlord?'}
+        <section className="bg-slate-50 py-10 md:py-14">
+          <div className="mx-auto max-w-7xl px-4 text-center">
+            <h2 className="text-xl font-semibold text-slate-900 md:text-2xl">
+              Propriétaire ?
             </h2>
-            <p className="text-emerald-100 text-sm md:text-base mb-6 max-w-xl mx-auto">
-              {lang === 'fr'
-                ? 'Publiez vos annonces gratuitement et trouvez rapidement des locataires vérifiés parmi les étudiants et fonctionnaires.'
-                : 'Post your listings for free and quickly find verified tenants among students and civil servants.'}
+            <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
+              Publiez gratuitement vos annonces et trouvez rapidement des locataires.
             </p>
             <button
-              className="bg-white text-emerald-800 hover:bg-emerald-50 px-6 py-3 rounded-lg font-medium transition-colors"
               onClick={() => {
-                if (currentUser?.role === 'landlord') {
-                  router.push('/add-listing');
-                } else {
-                  router.push('/register');
-                }
+                if (currentUser?.role === 'landlord') router.push('/add-listing');
+                else router.push('/register');
               }}
+              className="mt-5 rounded-lg border border-slate-900 bg-white px-6 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
             >
-              {currentUser?.role === 'landlord'
-                ? t('dashboard.listing.add', lang)
-                : t('nav.register', lang)}
+              {currentUser?.role === 'landlord' ? 'Ajouter une annonce' : 'Créer un compte'}
             </button>
           </div>
         </section>

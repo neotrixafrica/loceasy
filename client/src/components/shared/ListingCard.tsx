@@ -2,41 +2,50 @@
 
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
-import { t } from '@/lib/translations';
 import { apiFetch } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import { Heart, MapPin, BedDouble, Maximize } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Heart, Star, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+interface Landlord {
+  id: string;
+  name: string;
+  verified?: boolean;
+}
 
 interface Listing {
   id: string;
   title: string;
-  description: string;
   price: number;
   type: string;
   city: string;
   quartier: string | null;
   images: string[];
-  area: number | null;
-  rooms: number;
-  amenities: string[];
-  landlord: { id: string; name: string };
+  landlord?: Landlord;
 }
 
+const typeLabels: Record<string, string> = {
+  chambre: 'Chambre',
+  studio: 'Studio',
+  appartement: 'Appartement',
+  maison: 'Maison',
+  bureau: 'Bureau',
+};
+
 export function ListingCard({ listing }: { listing: Listing }) {
-  const { lang, currentUser } = useAppStore();
+  const { currentUser } = useAppStore();
   const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const images = listing.images || [];
+  const image = listing.images?.[0];
+  const label = typeLabels[listing.type] || listing.type;
 
   useEffect(() => {
     if (currentUser) {
       apiFetch(`/api/favorites?userId=${currentUser.id}`)
         .then((res) => res.json())
-        .then((favs) => setIsFavorite(favs.some((f: { id: string }) => f.id === listing.id)))
+        .then((favs: Listing[]) => setIsFavorite(favs.some((f) => f.id === listing.id)))
         .catch(() => {});
     }
   }, [currentUser, listing.id]);
@@ -59,98 +68,89 @@ export function ListingCard({ listing }: { listing: Listing }) {
         });
         setIsFavorite(true);
       }
-    } catch (error) {
-      console.error('Failed to toggle favorite:', error);
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err);
     }
   };
 
-  const handleClick = async () => {
+  const handleClick = () => {
     router.push(`/listing/${listing.id}`);
   };
 
-  const typeColor = listing.type === 'chambre' ? 'bg-emerald-100 text-emerald-800' :
-    listing.type === 'studio' ? 'bg-amber-100 text-amber-800' :
-    'bg-blue-100 text-blue-800';
-
   return (
     <div
-      className="bg-card border rounded-xl overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
       onClick={handleClick}
+      className="group cursor-pointer"
     >
-      {/* Image */}
-      <div className="relative aspect-[16/11] bg-muted overflow-hidden">
-        {images[0] && !imageError ? (
+      <div className="relative aspect-[20/19] w-full overflow-hidden rounded-xl bg-slate-100">
+        {image && !imageError ? (
           <img
-            src={images[0]}
+            src={image}
             alt={listing.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-emerald-200 to-emerald-300 flex items-center justify-center">
-            <svg className="h-10 w-10 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <div className="flex h-full w-full items-center justify-center bg-slate-200">
+            <svg
+              className="h-10 w-10 text-slate-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
         )}
 
-        {/* Price badge */}
-        <div className="absolute top-2 right-2">
-          <Badge className="bg-emerald-700 text-white text-xs font-semibold px-2 py-0.5 shadow-sm">
-            {listing.price.toLocaleString()} FCFA
-          </Badge>
-        </div>
+        {listing.landlord?.verified && (
+          <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-slate-900 shadow-sm">
+            Vérifié
+          </span>
+        )}
 
-        {/* Type badge */}
-        <div className="absolute top-2 left-2">
-          <Badge className={cn('text-[10px] px-1.5 py-0 shadow-sm', typeColor)}>
-            {t(`type.${listing.type}`, lang)}
-          </Badge>
-        </div>
-
-        {/* Favorite button */}
         <button
-          className="absolute bottom-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-colors shadow-sm"
           onClick={toggleFavorite}
+          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm transition hover:bg-white"
+          aria-label="Favori"
         >
           <Heart
             className={cn(
               'h-4 w-4 transition-colors',
-              isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'
+              isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-700'
             )}
           />
         </button>
       </div>
 
-      {/* Content */}
-      <div className="p-3">
-        <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-emerald-700 transition-colors">
-          {listing.title}
-        </h3>
-        <p className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
-          <MapPin className="h-3 w-3 flex-shrink-0" />
-          <span className="line-clamp-1">
+      <div className="mt-3 space-y-1">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="line-clamp-1 text-sm font-semibold text-slate-900">
+            {listing.title}
+          </h3>
+          <div className="flex shrink-0 items-center gap-1 text-xs text-slate-900">
+            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+            <span>4.6</span>
+          </div>
+        </div>
+
+        <p className="flex items-center gap-1 text-sm text-slate-500 line-clamp-1">
+          <MapPin className="h-3 w-3 shrink-0" />
+          <span>
             {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
           </span>
         </p>
-        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-          <span className="flex items-center gap-0.5">
-            <BedDouble className="h-3 w-3" />
-            {listing.rooms}
-          </span>
-          {listing.area && (
-            <span className="flex items-center gap-0.5">
-              <Maximize className="h-3 w-3" />
-              {listing.area} m²
-            </span>
-          )}
-          {listing.landlord && (
-            <span className="text-[11px] text-muted-foreground">
-              {lang === 'fr' ? 'par' : 'by'} {listing.landlord.name.split(' ')[0]}
-            </span>
-          )}
-        </div>
+
+        <p className="text-sm text-slate-500">
+          {label}
+        </p>
+
+        <p className="text-sm font-medium text-slate-900">
+          {listing.price.toLocaleString()} FCFA
+          <span className="font-normal text-slate-500"> / mois</span>
+        </p>
       </div>
     </div>
   );

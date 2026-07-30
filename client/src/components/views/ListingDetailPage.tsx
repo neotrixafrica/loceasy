@@ -1,23 +1,31 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import { apiFetch } from '@/lib/api';
-import { t } from '@/lib/translations';
 import { useRouter } from 'next/navigation';
-import { Heart, MapPin, BedDouble, Maximize, ChevronLeft, ChevronRight, X, MessageCircle, CalendarDays, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import {
+  Heart,
+  MapPin,
+  BedDouble,
+  Maximize,
+  ChevronLeft,
+  ChevronRight,
+  Share2,
+  MessageCircle,
+  CalendarDays,
+  User,
+  Star,
+  Home,
+} from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const MapView = dynamic(() => import('@/components/shared/MapView'), {
   ssr: false,
   loading: () => (
-    <div className="bg-emerald-50 border border-emerald-200 rounded-xl h-48 flex items-center justify-center">
-      <div className="text-center">
-        <MapPin className="h-8 w-8 text-emerald-600 mx-auto mb-2 animate-pulse" />
-        <p className="text-sm text-emerald-700">...</p>
-      </div>
+    <div className="flex h-48 w-full items-center justify-center rounded-2xl bg-slate-50">
+      <p className="text-sm text-slate-500">Chargement de la carte...</p>
     </div>
   ),
 });
@@ -45,11 +53,26 @@ interface Listing {
     phone: string | null;
     city: string | null;
     email: string;
+    verified?: boolean;
   };
 }
 
-export function ListingDetailPage({ listing: initialListing, listingId }: { listing?: Listing; listingId?: string }) {
-  const { lang, currentUser } = useAppStore();
+const typeLabels: Record<string, string> = {
+  chambre: 'Chambre',
+  studio: 'Studio',
+  appartement: 'Appartement',
+  maison: 'Maison',
+  bureau: 'Bureau',
+};
+
+export function ListingDetailPage({
+  listing: initialListing,
+  listingId,
+}: {
+  listing?: Listing;
+  listingId?: string;
+}) {
+  const { currentUser } = useAppStore();
   const router = useRouter();
   const [listing, setListing] = useState<Listing | undefined>(initialListing);
   const [loading, setLoading] = useState(!initialListing && !!listingId);
@@ -71,33 +94,32 @@ export function ListingDetailPage({ listing: initialListing, listingId }: { list
       .finally(() => setLoading(false));
   }, [initialListing, listingId]);
 
-  const images = listing ? listing.images : [];
-  const amenities = listing ? listing.amenities : [];
-
   useEffect(() => {
     if (currentUser && listing) {
       apiFetch(`/api/favorites?userId=${currentUser.id}`)
         .then((res) => res.json())
-        .then((favs) => setIsFavorite(favs.some((f: { id: string }) => f.id === listing.id)))
+        .then((favs: Listing[]) => setIsFavorite(favs.some((f) => f.id === listing.id)))
         .catch(() => {});
     }
   }, [currentUser, listing]);
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <p className="text-muted-foreground">{t('common.loading', lang)}</p>
+      <div className="flex flex-1 items-center justify-center">
+        <p className="text-slate-500">Chargement...</p>
       </div>
     );
   }
 
   if (!listing) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <p className="text-muted-foreground">Listing not found</p>
+      <div className="flex flex-1 items-center justify-center">
+        <p className="text-slate-500">Logement introuvable.</p>
       </div>
     );
   }
+
+  const images = listing.images || [];
 
   const toggleFavorite = async () => {
     if (!currentUser) {
@@ -112,12 +134,25 @@ export function ListingDetailPage({ listing: initialListing, listingId }: { list
         await apiFetch('/api/favorites', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUser.id, listingId: listing.id }),
+          body: JSON.stringify({ listingId: listing.id }),
         });
         setIsFavorite(true);
       }
-    } catch (error) {
-      console.error('Failed to toggle favorite:', error);
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err);
+    }
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: listing.title, url });
+      } catch {
+        // ignore
+      }
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
     }
   };
 
@@ -137,247 +172,281 @@ export function ListingDetailPage({ listing: initialListing, listingId }: { list
     router.push(`/booking-form?listingId=${listing.id}`);
   };
 
-  const typeLabel = t(`type.${listing.type}`, lang);
-  const typeColor = listing.type === 'chambre' ? 'bg-emerald-100 text-emerald-800' :
-    listing.type === 'studio' ? 'bg-amber-100 text-amber-800' :
-    'bg-blue-100 text-blue-800';
+  const nextImage = () => setCurrentImage((prev) => (prev + 1) % images.length);
+  const prevImage = () => setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
 
   return (
-    <div className="flex-1 max-w-4xl mx-auto w-full">
-      {/* Back button */}
-      <div className="sticky top-14 z-40 bg-background/95 backdrop-blur border-b px-4 md:px-6 py-2 flex items-center gap-2 md:hidden">
-        <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          {t('detail.back', lang)}
-        </Button>
-        <div className="flex-1" />
-        <Button variant="ghost" size="icon" onClick={toggleFavorite}>
-          <Heart className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
-        </Button>
+    <div className="flex-1 bg-white pb-20 md:pb-0">
+      {/* Mobile top bar */}
+      <div className="sticky top-20 z-30 flex items-center justify-between border-b bg-white px-4 py-2 md:hidden">
+        <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-slate-700">
+          <ChevronLeft className="h-5 w-5" />
+          Retour
+        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleShare} className="rounded-full p-2 hover:bg-slate-100">
+            <Share2 className="h-5 w-5 text-slate-700" />
+          </button>
+          <button onClick={toggleFavorite} className="rounded-full p-2 hover:bg-slate-100">
+            <Heart className={cn('h-5 w-5', isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-700')} />
+          </button>
+        </div>
       </div>
 
-      {/* Image Gallery */}
-      <div className="relative aspect-[16/10] bg-muted overflow-hidden">
+      <div className="mx-auto max-w-6xl px-0 md:px-6 lg:px-8">
+        {/* Mobile image carousel */}
+        <div className="relative h-72 w-full overflow-hidden md:hidden">
+          {images.length > 0 ? (
+            <img
+              src={images[currentImage]}
+              alt={listing.title}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-slate-100">
+              <Home className="h-12 w-12 text-slate-300" />
+            </div>
+          )}
+          {images.length > 1 && (
+            <>
+              <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow">
+                <ChevronLeft className="h-5 w-5 text-slate-800" />
+              </button>
+              <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow">
+                <ChevronRight className="h-5 w-5 text-slate-800" />
+              </button>
+              <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+                {images.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentImage(i)}
+                    className={cn('h-2 w-2 rounded-full transition', i === currentImage ? 'bg-white' : 'bg-white/60')}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Desktop image gallery */}
         {images.length > 0 ? (
-          <img
-            src={images[currentImage]}
-            alt={listing.title}
-            className="w-full h-full object-cover"
-          />
+          <div className="hidden h-[420px] w-full gap-2 py-6 md:grid md:grid-cols-2 md:grid-rows-2">
+            <div className="relative col-span-1 row-span-2 overflow-hidden rounded-l-2xl bg-slate-100">
+              <img
+                src={images[0]}
+                alt={listing.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            {images[1] && (
+              <div className="relative overflow-hidden bg-slate-100">
+                <img src={images[1]} alt="" className="h-full w-full object-cover" />
+              </div>
+            )}
+            {images[2] && (
+              <div className="relative overflow-hidden rounded-tr-2xl bg-slate-100">
+                <img src={images[2]} alt="" className="h-full w-full object-cover" />
+              </div>
+            )}
+          </div>
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-emerald-200 to-emerald-300 flex items-center justify-center">
-            <HomeIcon className="h-16 w-16 text-emerald-600" />
+          <div className="hidden h-[420px] w-full items-center justify-center rounded-2xl bg-slate-100 md:flex">
+            <Home className="h-16 w-16 text-slate-300" />
           </div>
         )}
 
-        {/* Image navigation */}
-        {images.length > 1 && (
-          <>
-            <button
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white transition-colors"
-              onClick={() => setCurrentImage((prev) => (prev - 1 + images.length) % images.length)}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 hover:bg-black/50 rounded-full flex items-center justify-center text-white transition-colors"
-              onClick={() => setCurrentImage((prev) => (prev + 1) % images.length)}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-              {images.map((_, i) => (
-                <button
-                  key={i}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    i === currentImage ? 'bg-white' : 'bg-white/50'
-                  }`}
-                  onClick={() => setCurrentImage(i)}
-                />
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Price badge */}
-        <div className="absolute top-3 right-3">
-          <Badge className="bg-emerald-700 text-white px-3 py-1 text-sm font-semibold">
-            {listing.price.toLocaleString()} {t('detail.price', lang)}
-          </Badge>
-        </div>
-
-        {/* Favorite (desktop) */}
-        <button
-          className="absolute top-3 left-3 hidden md:flex w-9 h-9 bg-white/90 hover:bg-white rounded-full items-center justify-center transition-colors shadow-sm"
-          onClick={toggleFavorite}
-        >
-          <Heart className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-        </button>
-      </div>
-
-      {/* Thumbnails */}
-      {images.length > 1 && (
-        <div className="flex gap-2 p-3 overflow-x-auto">
-          {images.map((img, i) => (
-            <button
-              key={i}
-              className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-colors ${
-                i === currentImage ? 'border-emerald-600' : 'border-transparent'
-              }`}
-              onClick={() => setCurrentImage(i)}
-            >
-              <img src={img} alt="" className="w-full h-full object-cover" />
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="px-4 md:px-6 pb-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left column */}
-          <div className="flex-1">
-            {/* Title & type */}
-            <div className="mb-4 pt-2">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge className={typeColor}>{typeLabel}</Badge>
-                <span className="text-xs text-muted-foreground">{listing.rooms} {t('detail.rooms', lang)}</span>
-                {listing.area && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Maximize className="h-3 w-3" /> {listing.area} {t('detail.area', lang)}
-                  </span>
-                )}
-              </div>
-              <h1 className="text-xl md:text-2xl font-bold">{listing.title}</h1>
-              <p className="text-muted-foreground text-sm mt-1 flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
-                {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
-                {listing.address && ` - ${listing.address}`}
-              </p>
-            </div>
-
-            {/* Key features */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <div className="bg-card border rounded-lg p-3 text-center">
-                <BedDouble className="h-5 w-5 text-emerald-700 mx-auto mb-1" />
-                <p className="text-xs text-muted-foreground">{t('type.chambre', lang)}(s)</p>
-                <p className="font-semibold text-sm">{listing.rooms}</p>
-              </div>
-              <div className="bg-card border rounded-lg p-3 text-center">
-                <Maximize className="h-5 w-5 text-emerald-700 mx-auto mb-1" />
-                <p className="text-xs text-muted-foreground">{lang === 'fr' ? 'Superficie' : 'Area'}</p>
-                <p className="font-semibold text-sm">{listing.area ? `${listing.area} m²` : '-'}</p>
-              </div>
-              <div className="bg-card border rounded-lg p-3 text-center">
-                <Badge className="bg-emerald-50 text-emerald-800 border-0 px-2 py-0.5">
-                  {typeLabel}
-                </Badge>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-3">{t('detail.description', lang)}</h2>
-              <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
-                {listing.description}
-              </p>
-            </div>
-
-            {/* Amenities */}
-            {amenities.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold mb-3">{t('detail.amenities', lang)}</h2>
-                <div className="flex flex-wrap gap-2">
-                  {amenities.map((amenity) => (
-                    <Badge key={amenity} variant="secondary" className="text-xs px-3 py-1">
-                      {amenity}
-                    </Badge>
-                  ))}
+        <div className="px-4 pb-6 pt-4 md:px-0 md:pt-0">
+          <div className="flex flex-col gap-8 md:flex-row md:items-start">
+            {/* Left content */}
+            <div className="flex-1">
+              {/* Title / location */}
+              <div className="mb-4">
+                <h1 className="text-2xl font-semibold text-slate-900 md:text-3xl">{listing.title}</h1>
+                <p className="mt-1 flex items-center gap-1 text-sm text-slate-600">
+                  <MapPin className="h-4 w-4" />
+                  {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
+                  {listing.address && ` — ${listing.address}`}
+                </p>
+                <div className="mt-2 flex items-center gap-1 text-sm">
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <span className="font-medium text-slate-900">4.6</span>
+                  <span className="text-slate-500">· {typeLabels[listing.type] || listing.type}</span>
                 </div>
               </div>
-            )}
 
-            {/* Rules */}
-            {listing.rules && (
+              {/* Desktop action buttons */}
+              <div className="mb-6 hidden items-center gap-3 md:flex">
+                <button
+                  onClick={handleShare}
+                  className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Partager
+                </button>
+                <button
+                  onClick={toggleFavorite}
+                  className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                >
+                  <Heart className={cn('h-4 w-4', isFavorite ? 'fill-red-500 text-red-500' : '')} />
+                  Favoris
+                </button>
+              </div>
+
+              {/* Key details */}
+              <div className="mb-6 grid grid-cols-3 gap-3 border-y border-slate-100 py-5">
+                <div className="text-center">
+                  <BedDouble className="mx-auto mb-1 h-5 w-5 text-emerald-600" />
+                  <p className="text-xs text-slate-500">Pièces</p>
+                  <p className="font-semibold text-slate-900">{listing.rooms}</p>
+                </div>
+                <div className="text-center">
+                  <Maximize className="mx-auto mb-1 h-5 w-5 text-emerald-600" />
+                  <p className="text-xs text-slate-500">Superficie</p>
+                  <p className="font-semibold text-slate-900">{listing.area ? `${listing.area} m²` : '-'}</p>
+                </div>
+                <div className="text-center">
+                  <Home className="mx-auto mb-1 h-5 w-5 text-emerald-600" />
+                  <p className="text-xs text-slate-500">Type</p>
+                  <p className="font-semibold text-slate-900">{typeLabels[listing.type] || listing.type}</p>
+                </div>
+              </div>
+
+              {/* Description */}
               <div className="mb-6">
-                <h2 className="text-lg font-semibold mb-3">{t('detail.rules', lang)}</h2>
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
+                <h2 className="mb-2 text-lg font-semibold text-slate-900">Description</h2>
+                <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+                  {listing.description}
+                </p>
+              </div>
+
+              {/* Amenities */}
+              {listing.amenities.length > 0 && (
+                <div className="mb-6">
+                  <h2 className="mb-3 text-lg font-semibold text-slate-900">Équipements</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {listing.amenities.map((amenity) => (
+                      <span
+                        key={amenity}
+                        className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-700"
+                      >
+                        {amenity}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Rules */}
+              {listing.rules && (
+                <div className="mb-6">
+                  <h2 className="mb-2 text-lg font-semibold text-slate-900">Règles et conditions</h2>
+                  <p className="whitespace-pre-line rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
                     {listing.rules}
                   </p>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Map */}
-            {(listing.latitude && listing.longitude) && (
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold mb-3">{t('detail.location', lang)}</h2>
-                <MapView
-                  latitude={listing.latitude}
-                  longitude={listing.longitude}
-                  title={listing.title}
-                  className="h-64 rounded-xl overflow-hidden border"
-                  single
-                />
-                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
-                  {listing.address && ` - ${listing.address}`}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Right column - Booking card */}
-          <div className="w-full md:w-80 flex-shrink-0">
-            <div className="sticky top-20 bg-card border rounded-xl p-5">
-              <div className="mb-4">
-                <span className="text-2xl font-bold text-emerald-700">
-                  {listing.price.toLocaleString()}
-                </span>
-                <span className="text-sm text-muted-foreground"> {t('detail.price', lang)}</span>
-              </div>
-
-              <div className="space-y-2 mb-4">
-                <Button className="w-full" size="lg" onClick={handleBooking}>
-                  <CalendarDays className="h-4 w-4 mr-2" />
-                  {t('detail.book', lang)}
-                </Button>
-                <Button variant="outline" className="w-full" size="lg" onClick={handleContact}>
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  {t('detail.contact', lang)}
-                </Button>
-              </div>
-
-              {/* Landlord info */}
-              <div className="border-t pt-4">
-                <h3 className="text-sm font-semibold mb-3">{t('detail.landlord', lang)}</h3>
+              {/* Host */}
+              <div className="mb-6 border-y border-slate-100 py-5">
+                <h2 className="mb-3 text-lg font-semibold text-slate-900">Hôte</h2>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                    <User className="h-5 w-5 text-emerald-700" />
-                  </div>
+                  {listing.landlord.avatar ? (
+                    <img
+                      src={listing.landlord.avatar}
+                      alt={listing.landlord.name}
+                      className="h-14 w-14 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+                      <User className="h-7 w-7 text-slate-400" />
+                    </div>
+                  )}
                   <div>
-                    <p className="font-medium text-sm">{listing.landlord.name}</p>
+                    <p className="font-medium text-slate-900">{listing.landlord.name}</p>
                     {listing.landlord.city && (
-                      <p className="text-xs text-muted-foreground">{listing.landlord.city}</p>
+                      <p className="text-sm text-slate-500">{listing.landlord.city}</p>
+                    )}
+                    {listing.landlord.verified && (
+                      <p className="text-xs text-emerald-700">Identité vérifiée</p>
                     )}
                   </div>
                 </div>
               </div>
+
+              {/* Map */}
+              {listing.latitude && listing.longitude && (
+                <div className="mb-6">
+                  <h2 className="mb-3 text-lg font-semibold text-slate-900">Localisation</h2>
+                  <MapView
+                    latitude={listing.latitude}
+                    longitude={listing.longitude}
+                    title={listing.title}
+                    className="h-64 w-full rounded-2xl"
+                    single
+                  />
+                  <p className="mt-2 flex items-center gap-1 text-xs text-slate-500">
+                    <MapPin className="h-3 w-3" />
+                    {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop price card */}
+            <div className="hidden w-full max-w-sm md:block md:sticky md:top-40">
+              <div className="rounded-2xl border border-slate-100 p-5 shadow-sm">
+                <div className="mb-4">
+                  <span className="text-2xl font-bold text-slate-900">{listing.price.toLocaleString()} FCFA</span>
+                  <span className="text-slate-500"> / mois</span>
+                </div>
+                <div className="space-y-2">
+                  <button
+                    onClick={handleBooking}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 text-sm font-medium text-white transition hover:bg-emerald-700"
+                  >
+                    <CalendarDays className="h-4 w-4" />
+                    Réserver
+                  </button>
+                  <button
+                    onClick={handleContact}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-900 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Contacter
+                  </button>
+                </div>
+                <div className="mt-4 border-t pt-4">
+                  <p className="text-sm text-slate-500">Prix mensuel hors charges éventuelles.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
 
-function HomeIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <polyline points="9 22 9 12 15 12 15 22" />
-    </svg>
+      {/* Mobile action bar */}
+      <div className="fixed bottom-16 left-0 right-0 z-40 border-t bg-white p-4 shadow-sm md:hidden">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xl font-bold text-slate-900">{listing.price.toLocaleString()} FCFA</p>
+            <p className="text-xs text-slate-500">/ mois</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleContact}
+              className="rounded-lg border border-slate-900 px-4 py-2.5 text-sm font-medium text-slate-900"
+            >
+              Contacter
+            </button>
+            <button
+              onClick={handleBooking}
+              className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white"
+            >
+              Réserver
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
