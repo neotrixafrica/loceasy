@@ -1,6 +1,7 @@
 'use client';
 
 import { useAppStore } from '@/lib/store';
+import { apiFetch } from '@/lib/api';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { Menu, Search, Globe, User, Bell } from 'lucide-react';
@@ -16,7 +17,7 @@ const navLinks = [
 ];
 
 export function Header() {
-  const { lang, setLang, currentUser, notifications } = useAppStore();
+  const { lang, setLang, currentUser, notifications, logout } = useAppStore();
   const router = useRouter();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
@@ -41,6 +42,13 @@ export function Header() {
   }, []);
 
   const unread = notifications.filter((n) => !n.read).length;
+
+  const handleLogout = async () => {
+    setShowMenu(false);
+    await apiFetch('/api/auth/logout', { method: 'POST' });
+    logout();
+    router.push('/');
+  };
 
   return (
     <header
@@ -142,7 +150,7 @@ export function Header() {
                     <button onClick={() => { setShowMenu(false); router.push('/landlord-dashboard'); }} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50">Tableau de bord</button>
                   )}
                   <hr className="my-1" />
-                  <button onClick={() => { setShowMenu(false); router.push('/logout'); }} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50">Déconnexion</button>
+                  <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50">Déconnexion</button>
                 </>
               ) : (
                 <>
