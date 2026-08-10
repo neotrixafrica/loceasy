@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '@/lib/store';
-import { apiFetch } from '@/lib/api';
+import { api, apiGet } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { Send, ChevronLeft, MessageCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { Message } from '@/types';
 
 interface Conversation {
   partnerId: string;
@@ -23,13 +24,7 @@ interface Conversation {
   unread: number;
 }
 
-interface Message {
-  id: string;
-  content: string;
-  senderId: string;
-  receiverId: string;
-  createdAt: string;
-  read: boolean;
+interface ExtendedMessage extends Message {
   sender: { id: string; name: string; avatar: string | null };
   receiver: { id: string; name: string; avatar: string | null };
 }
@@ -38,18 +33,15 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
   const { lang, currentUser } = useAppStore();
   const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ExtendedMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [activeConversation, setActiveConversation] = useState<string | null>(
-    partnerId || null
-  );
+  const [activeConversation, setActiveConversation] = useState<string | null>(partnerId || null);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (currentUser) {
-      fetchConversations();
-    }
+    if (!currentUser) return;
+    fetchConversations();
   }, [currentUser]);
 
   useEffect(() => {
@@ -62,53 +54,39 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     try {
-      const res = await apiFetch('/api/messages');
-      if (res.ok) {
-        const data = await res.json();
-        setConversations(data);
-        if (!activeConversation && data.length > 0 && !partnerId) {
-          setActiveConversation(data[0].partnerId);
-        }
+      const data = await apiGet<Conversation[]>('/api/messages');
+      setConversations(data);
+      if (!activeConversation && data.length > 0 && !partnerId) {
+        setActiveConversation(data[0].partnerId);
       }
     } catch (error) {
       console.error('Failed to fetch conversations:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeConversation, partnerId]);
 
-  const fetchMessages = async (partnerId: string) => {
+  const fetchMessages = useCallback(async (id: string) => {
     try {
-      const res = await apiFetch(`/api/messages?partnerId=${partnerId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setMessages(data);
-      }
+      const data = await apiGet<ExtendedMessage[]>(`/api/messages?partnerId=${id}`);
+      setMessages(data);
     } catch (error) {
       console.error('Failed to fetch messages:', error);
     }
-  };
+  }, []);
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !currentUser || !activeConversation) return;
     try {
-      const res = await apiFetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: newMessage,
-          senderId: currentUser.id,
-          receiverId: activeConversation,
-          listingId: null,
-        }),
+      await api.messages.send({
+        content: newMessage,
+        receiverId: activeConversation,
       });
-      if (res.ok) {
-        setNewMessage('');
-        fetchMessages(activeConversation);
-        fetchConversations();
-      }
+      setNewMessage('');
+      fetchMessages(activeConversation);
+      fetchConversations();
     } catch (error) {
       console.error('Failed to send message:', error);
     }
@@ -138,7 +116,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
   return (
     <div className="flex-1 flex h-[calc(100vh-3.5rem)] md:h-[calc(100vh-3.5rem)]">
       {/* Conversation list */}
-      <div className={`w-full md:w-80 border-r flex-shrink-0 ${activeConversation ? 'hidden md:block' : 'block'}`}>
+      <div className={cn('w-full md:w-80 border-r flex-shrink-0', activeConversation ? 'hidden md:block' : 'block')}>
         <div className="p-4 border-b">
           <h2 className="font-semibold">{t('messages.title', lang)}</h2>
         </div>
@@ -152,12 +130,11 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
             conversations.map((conv) => (
               <button
                 key={conv.partnerId ?? conv.partnerName + conv.lastMessage.createdAt}
-                className={`w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors border-b text-left ${
+                className={cn(
+                  'w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors border-b text-left',
                   activeConversation === conv.partnerId ? 'bg-emerald-50' : ''
-                }`}
-                onClick={() => {
-                  setActiveConversation(conv.partnerId);
-                }}
+                )}
+                onClick={() => setActiveConversation(conv.partnerId)}
               >
                 <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                   <span className="text-sm font-medium text-emerald-700">
@@ -172,9 +149,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground truncate mt-0.5">
-                    {conv.lastMessage.senderId === currentUser.id
-                      ? `${lang === 'fr' ? 'Vous' : 'You'}: `
-                      : ''}
+                    {conv.lastMessage.senderId === currentUser.id ? `${t('messages.you', lang)}: ` : ''}
                     {conv.lastMessage.content}
                   </p>
                 </div>
@@ -190,7 +165,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
       </div>
 
       {/* Chat area */}
-      <div className={`flex-1 flex flex-col ${!activeConversation ? 'hidden md:flex' : 'flex'}`}>
+      <div className={cn('flex-1 flex flex-col', !activeConversation ? 'hidden md:flex' : 'flex')}>
         {activeConversation && activePartner ? (
           <>
             {/* Chat header */}
@@ -203,11 +178,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
-              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                <span className="text-xs font-medium text-emerald-700">
-                  {activePartner.partnerName.charAt(0)}
-                </span>
-              </div>
+              <Avatar name={activePartner.partnerName} />
               <div>
                 <p className="font-medium text-sm">{activePartner.partnerName}</p>
               </div>
@@ -218,16 +189,17 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
               {messages.map((msg) => {
                 const isMine = msg.senderId === currentUser?.id;
                 return (
-                  <div key={msg.id ?? `${msg.senderId}-${msg.createdAt}`} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                  <div key={msg.id ?? `${msg.senderId}-${msg.createdAt}`} className={cn('flex', isMine ? 'justify-end' : 'justify-start')}>
                     <div
-                      className={`max-w-[75%] px-3 py-2 rounded-xl text-sm ${
+                      className={cn(
+                        'max-w-[75%] px-3 py-2 rounded-xl text-sm',
                         isMine
                           ? 'bg-emerald-700 text-white rounded-br-sm'
                           : 'bg-muted rounded-bl-sm'
-                      }`}
+                      )}
                     >
                       <p>{msg.content}</p>
-                      <p className={`text-[10px] mt-1 ${isMine ? 'text-emerald-200' : 'text-muted-foreground'}`}>
+                      <p className={cn('text-[10px] mt-1', isMine ? 'text-emerald-200' : 'text-muted-foreground')}>
                         {formatTime(msg.createdAt)}
                       </p>
                     </div>
@@ -258,12 +230,18 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-muted-foreground text-sm">
-              {lang === 'fr' ? 'Sélectionnez une conversation' : 'Select a conversation'}
-            </p>
+            <p className="text-muted-foreground text-sm">{t('messages.select', lang)}</p>
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function Avatar({ name, className }: { name: string; className?: string }) {
+  return (
+    <div className={cn('w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center', className)}>
+      <span className="text-xs font-medium text-emerald-700">{name.charAt(0)}</span>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
-import { apiFetch } from '@/lib/api';
+import { api } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { ListingCard } from '@/components/shared/ListingCard';
 import type { Listing } from '@/types';
@@ -21,11 +21,8 @@ export function FavoritesPage() {
 
   const fetchFavorites = async () => {
     try {
-      const res = await apiFetch('/api/favorites');
-      if (res.ok) {
-        const data = await res.json();
-        setFavorites(data);
-      }
+      const data = await api.favorites.list();
+      setFavorites(data as Listing[]);
     } catch (error) {
       console.error('Failed to fetch favorites:', error);
     } finally {

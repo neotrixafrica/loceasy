@@ -134,6 +134,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'booking.nights': 'nuits',
     'booking.total': 'Total estimé',
     'booking.paymentNote': 'Paiement par Mobile Money (Moov Money, T-Money).',
+    'booking.payNow': 'Payer maintenant',
 
     // Booking status
     'status.pending': 'En attente',
@@ -148,6 +149,8 @@ const translations: Record<Lang, Record<string, string>> = {
     'messages.placeholder': 'Écrivez un message...',
     'messages.send': 'Envoyer',
     'messages.online': 'En ligne',
+    'messages.you': 'Vous',
+    'messages.select': 'Sélectionnez une conversation',
 
     // Favorites
     'favorites.title': 'Mes favoris',
@@ -159,11 +162,17 @@ const translations: Record<Lang, Record<string, string>> = {
     'profile.title': 'Mon profil',
     'profile.edit': 'Modifier',
     'profile.logout': 'Déconnexion',
+    'profile.logout.success': 'Déconnecté avec succès',
+    'profile.verified': 'Vérifié',
     'profile.role.tenant': 'Locataire',
     'profile.role.landlord': 'Propriétaire',
     'profile.myListings': 'Mes annonces',
     'profile.settings': 'Paramètres',
     'profile.language': 'Langue',
+    'profile.verify.action': 'Vérifier mon compte',
+    'profile.verify.desc': 'Vérifiez votre compte pour gagner la confiance des propriétaires et locataires.',
+    'profile.verify.success': 'Compte vérifié',
+    'profile.verify.error': 'Échec de la vérification',
 
     // Dashboard (Landlord)
     'dashboard.title': 'Tableau de bord',
@@ -403,6 +412,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'booking.nights': 'nights',
     'booking.total': 'Estimated total',
     'booking.paymentNote': 'Payment via Mobile Money (Moov Money, T-Money).',
+    'booking.payNow': 'Pay now',
 
     // Booking status
     'status.pending': 'Pending',
@@ -417,6 +427,8 @@ const translations: Record<Lang, Record<string, string>> = {
     'messages.placeholder': 'Write a message...',
     'messages.send': 'Send',
     'messages.online': 'Online',
+    'messages.you': 'You',
+    'messages.select': 'Select a conversation',
 
     // Favorites
     'favorites.title': 'My favorites',
@@ -428,11 +440,17 @@ const translations: Record<Lang, Record<string, string>> = {
     'profile.title': 'My profile',
     'profile.edit': 'Edit',
     'profile.logout': 'Logout',
+    'profile.logout.success': 'Logged out successfully',
+    'profile.verified': 'Verified',
     'profile.role.tenant': 'Tenant',
     'profile.role.landlord': 'Landlord',
     'profile.myListings': 'My listings',
     'profile.settings': 'Settings',
     'profile.language': 'Language',
+    'profile.verify.action': 'Verify my account',
+    'profile.verify.desc': 'Verify your account to build trust with landlords and tenants.',
+    'profile.verify.success': 'Account verified',
+    'profile.verify.error': 'Verification failed',
 
     // Dashboard (Landlord)
     'dashboard.title': 'Dashboard',
