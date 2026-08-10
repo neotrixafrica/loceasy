@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAppStore } from '@/lib/store';
-import { apiFetch } from '@/lib/api';
+import { api, apiGet } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -10,65 +10,44 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { MapPin, Phone, Wallet } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { Booking, PaymentMethod } from '@/types';
 
-interface Booking {
-  id: string;
-  startDate: string;
-  endDate: string;
-  status: string;
-  paymentStatus: string;
-  listing: {
-    id: string;
-    title: string;
-    price: number;
-    city: string;
-    quartier?: string | null;
-    images: string[];
-  };
-  payment?: {
-    id: string;
-    amount: number;
-    method: string;
-    phone: string;
-    status: string;
-    transactionRef: string;
-  } | null;
-}
-
-const METHODS = [
+const METHODS: { id: PaymentMethod; label: string; color: string }[] = [
   { id: 'flooz', label: 'Moov Money (Flooz)', color: 'bg-blue-600' },
   { id: 'tmoney', label: 'T-Money', color: 'bg-yellow-500' },
   { id: 'wave', label: 'Wave', color: 'bg-sky-500' },
   { id: 'orange_money', label: 'Orange Money', color: 'bg-orange-500' },
 ];
 
+type Step = 'form' | 'verify';
+
+interface BookingWithListing extends Booking {
+  listing: NonNullable<Booking['listing']>;
+  payment: NonNullable<Booking['payment']> | null;
+}
+
 export function PaymentPage({ params }: { params: Promise<{ bookingId: string }> }) {
   const { lang, currentUser } = useAppStore();
   const router = useRouter();
-  const [booking, setBooking] = useState<Booking | null>(null);
+  const [booking, setBooking] = useState<BookingWithListing | null>(null);
   const [fetching, setFetching] = useState(true);
-  const [method, setMethod] = useState('flooz');
+  const [method, setMethod] = useState<PaymentMethod>('flooz');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'form' | 'verify'>('form');
+  const [step, setStep] = useState<Step>('form');
   const [paymentId, setPaymentId] = useState<string | null>(null);
-  const [amount, setAmount] = useState(0);
 
   useEffect(() => {
+    let mounted = true;
     params.then(({ bookingId }) => {
-      apiFetch(`/api/bookings?scope=tenant`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data: Booking[]) => {
-          const found = data?.find((b) => b.id === bookingId);
-          if (found) {
+      apiGet<Booking[]>('/api/bookings?scope=tenant')
+        .then((data) => {
+          if (!mounted) return;
+          const found = data.find((b) => b.id === bookingId) as BookingWithListing | undefined;
+          if (found?.listing) {
             setBooking(found);
-            const days = Math.ceil(
-              (new Date(found.endDate).getTime() - new Date(found.startDate).getTime()) /
-                (1000 * 60 * 60 * 24)
-            );
-            const total = (found.listing.price / 30) * (days > 0 ? days : 30);
-            setAmount(Math.round(total));
             if (found.payment && found.payment.status === 'pending') {
               setPaymentId(found.payment.id);
               setPhone(found.payment.phone);
@@ -77,9 +56,21 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
             }
           }
         })
-        .finally(() => setFetching(false));
+        .catch(() => {})
+        .finally(() => mounted && setFetching(false));
     });
+    return () => { mounted = false; };
   }, [params]);
+
+  const amount = useMemo(() => {
+    if (!booking) return 0;
+    const days = Math.ceil(
+      (new Date(booking.endDate).getTime() - new Date(booking.startDate).getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+    const total = (booking.listing.price / 30) * (days > 0 ? days : 30);
+    return Math.round(total);
+  }, [booking]);
 
   const handleInitiate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,26 +78,18 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
 
     setLoading(true);
     try {
-      const res = await apiFetch('/api/payments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bookingId: booking.id,
-          method,
-          phone,
-          amount,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success(data.message || 'Payment initiated');
-        setPaymentId(data.payment.id);
-        setStep('verify');
-      } else {
-        toast.error(data.error || t('common.error', lang));
-      }
-    } catch {
-      toast.error(t('common.error', lang));
+      const data = await api.payments.create({
+        bookingId: booking.id,
+        method,
+        phone,
+        amount,
+      }) as { payment: { id: string }; message: string };
+      toast.success(data.message || t('payment.initiated', lang));
+      setPaymentId(data.payment.id);
+      setStep('verify');
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : t('common.error', lang);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -118,20 +101,12 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
 
     setLoading(true);
     try {
-      const res = await apiFetch('/api/payments/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentId, code }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success(data.message || 'Payment confirmed');
-        router.push('/profile');
-      } else {
-        toast.error(data.error || t('common.error', lang));
-      }
-    } catch {
-      toast.error(t('common.error', lang));
+      const data = await api.payments.verify({ paymentId, code }) as { message: string };
+      toast.success(data.message || t('payment.confirmed', lang));
+      router.push('/profile');
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : t('common.error', lang);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -158,9 +133,7 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
       <div className="flex-1 container mx-auto px-4 py-6 max-w-lg">
         <Card className="bg-emerald-50 border-emerald-200 text-center p-8">
           <h1 className="text-xl font-bold text-emerald-800 mb-2">{t('payment.paid', lang)}</h1>
-          <p className="text-sm text-emerald-700">
-            {t('payment.paidMessage', lang)}
-          </p>
+          <p className="text-sm text-emerald-700">{t('payment.paidMessage', lang)}</p>
           <Button className="mt-6" onClick={() => router.push('/profile')}>
             {t('common.back', lang)}
           </Button>
@@ -189,7 +162,7 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
           </div>
           <div className="flex justify-between text-sm pt-3 border-t">
             <span className="text-muted-foreground">{t('payment.amount', lang)}</span>
-            <span className="font-bold text-emerald-700 text-lg">{amount.toLocaleString()} FCFA</span>
+            <span className="font-bold text-emerald-700 text-lg">{amount.toLocaleString()} {t('common.fcfa', lang)}</span>
           </div>
         </CardContent>
       </Card>
@@ -204,13 +177,14 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
                   key={m.id}
                   type="button"
                   onClick={() => setMethod(m.id)}
-                  className={`flex items-center gap-2 p-3 rounded-xl border text-left text-sm transition ${
+                  className={cn(
+                    'flex items-center gap-2 p-3 rounded-xl border text-left text-sm transition',
                     method === m.id
                       ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500'
                       : 'border-border bg-white hover:bg-muted'
-                  }`}
+                  )}
                 >
-                  <Wallet className={`h-4 w-4 ${method === m.id ? 'text-emerald-600' : 'text-muted-foreground'}`} />
+                  <Wallet className={cn('h-4 w-4', method === m.id ? 'text-emerald-600' : 'text-muted-foreground')} />
                   {m.label}
                 </button>
               ))}
@@ -230,9 +204,7 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
               required
               minLength={8}
             />
-            <p className="text-xs text-muted-foreground mt-1.5">
-              {t('payment.simulation', lang)}
-            </p>
+            <p className="text-xs text-muted-foreground mt-1.5">{t('payment.simulation', lang)}</p>
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
@@ -244,9 +216,7 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
           <Card className="bg-emerald-50 border-emerald-200">
             <CardContent className="p-4 text-sm text-emerald-800">
               <p>{t('payment.codeSent', lang)} {phone}.</p>
-              <p className="mt-1 text-xs text-emerald-600">
-                {t('payment.demoCode', lang)}
-              </p>
+              <p className="mt-1 text-xs text-emerald-600">{t('payment.demoCode', lang)}</p>
             </CardContent>
           </Card>
 
