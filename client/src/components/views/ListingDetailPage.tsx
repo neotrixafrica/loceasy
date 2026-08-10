@@ -330,27 +330,32 @@ export function ListingDetailPage({
 
               {/* Host */}
               {listing.landlord && (
-              <div className="mb-6 border-y border py-5">
-                <h2 className="font-display mb-3 text-lg font-bold text-foreground">Hôte</h2>
-                <div className="flex items-center gap-3">
+              <div className="mb-6 rounded-2xl bg-muted/50 p-5">
+                <h2 className="font-display mb-4 text-lg font-bold text-foreground">Hôte</h2>
+                <div className="flex items-center gap-4">
                   {listing.landlord.avatar ? (
                     <img
                       src={listing.landlord.avatar}
                       alt={listing.landlord.name}
-                      className="h-14 w-14 rounded-full object-cover"
+                      className="h-16 w-16 rounded-full object-cover ring-2 ring-primary/10"
                     />
                   ) : (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-                      <User className="h-7 w-7 text-muted-foreground" />
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-card ring-2 ring-primary/10">
+                      <User className="h-8 w-8 text-muted-foreground" />
                     </div>
                   )}
-                  <div>
-                    <p className="font-medium text-foreground">{listing.landlord.name}</p>
+                  <div className="space-y-0.5">
+                    <p className="font-display font-semibold text-foreground">{listing.landlord.name}</p>
                     {listing.landlord.city && (
-                      <p className="text-sm text-muted-foreground">{listing.landlord.city}</p>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {listing.landlord.city}
+                      </p>
                     )}
                     {listing.landlord.verified && (
-                      <p className="text-xs text-primary">Identité vérifiée</p>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        Identité vérifiée
+                      </span>
                     )}
                   </div>
                 </div>
