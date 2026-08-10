@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
+import sharp from 'sharp';
 import { getCurrentUser } from '@/lib/session';
 
 cloudinary.config({
@@ -9,8 +10,20 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/tiff',
+  'image/bmp',
+  'image/avif',
+  'image/svg+xml',
+];
 const MAX_SIZE = 5 * 1024 * 1024;
+const MAX_WIDTH = 1920;
+const MAX_HEIGHT = 1920;
+const WEBP_QUALITY = 85;
 
 function uploadToCloudinary(buffer: Buffer, filename: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -28,6 +41,28 @@ function uploadToCloudinary(buffer: Buffer, filename: string): Promise<string> {
     );
     Readable.from(buffer).pipe(uploadStream);
   });
+}
+
+async function convertToWebp(buffer: Buffer, contentType: string): Promise<Buffer> {
+  const isAnimated = contentType === 'image/gif' || contentType === 'image/webp';
+  const pipeline = sharp(buffer, {
+    animated: isAnimated,
+    limitInputPixels: 100_000_000,
+  })
+    .rotate()
+    .resize({
+      width: MAX_WIDTH,
+      height: MAX_HEIGHT,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .webp({
+      quality: WEBP_QUALITY,
+      effort: 4,
+      smartSubsample: true,
+    });
+
+  return pipeline.toBuffer();
 }
 
 export async function POST(request: NextRequest) {
@@ -52,8 +87,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 413 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const url = await uploadToCloudinary(buffer, file.name || 'image.jpg');
+    const inputBuffer = Buffer.from(await file.arrayBuffer());
+    const outputBuffer = await convertToWebp(inputBuffer, file.type);
+    const safeName = (file.name || 'image').split('.')[0] + '.webp';
+    const url = await uploadToCloudinary(outputBuffer, safeName);
 
     return NextResponse.json({ url });
   } catch (error) {
