@@ -1,20 +1,15 @@
 'use client';
 
 import { useAppStore } from '@/lib/store';
-import { apiFetch } from '@/lib/api';
+import { api } from '@/lib/api';
+import { t } from '@/lib/translations';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { Menu, Search, Globe, User, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { Lang } from '@/types';
 
-const LANGS = { fr: 'Français', en: 'English', ee: 'Ewe', kab: 'Kabiyé' } as const;
-
-type Lang = keyof typeof LANGS;
-
-const navLinks = [
-  { href: '/', label: 'Accueil' },
-  { href: '/search', label: 'Explorer' },
-];
+const LANGS: Record<Lang, string> = { fr: 'Français', en: 'English', ee: 'Ewe', kab: 'Kabiyé' };
 
 export function Header() {
   const { lang, setLang, currentUser, notifications, logout } = useAppStore();
@@ -45,7 +40,11 @@ export function Header() {
 
   const handleLogout = async () => {
     setShowMenu(false);
-    await apiFetch('/api/auth/logout', { method: 'POST' });
+    try {
+      await api.auth.logout();
+    } catch {
+      // ignore
+    }
     logout();
     router.push('/');
   };
@@ -58,7 +57,6 @@ export function Header() {
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
-        {/* Logo */}
         <button
           onClick={() => router.push('/')}
           className="flex items-center gap-2 text-emerald-700 font-bold text-2xl tracking-tight shrink-0"
@@ -69,27 +67,25 @@ export function Header() {
           </span>
         </button>
 
-        {/* Search bar */}
         <button
           onClick={() => router.push('/search')}
           className="hidden sm:flex items-center gap-3 bg-white border border-slate-200 rounded-full shadow-sm hover:shadow-md transition-shadow py-2.5 pl-6 pr-2 text-sm"
         >
-          <span className="font-medium text-slate-700">Partout</span>
+          <span className="font-medium text-slate-700">{t('search.title', lang)}</span>
           <span className="w-px h-5 bg-slate-200" />
-          <span className="text-slate-500">Chambre, studio, appart</span>
+          <span className="text-slate-500">{t('header.searchHint', lang)}</span>
           <span className="w-px h-5 bg-slate-200" />
           <div className="bg-emerald-600 text-white rounded-full p-1.5">
             <Search className="w-3.5 h-3.5" />
           </div>
         </button>
 
-        {/* Right */}
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => currentUser ? router.push('/add-listing') : router.push('/login')}
             className="hidden md:block text-sm font-medium hover:bg-slate-50 px-4 py-2.5 rounded-full transition-colors"
           >
-            Mettre mon logement
+            {t('header.listYourHome', lang)}
           </button>
 
           <div className="relative" ref={langRef}>
@@ -104,13 +100,13 @@ export function Header() {
                 {(Object.keys(LANGS) as Lang[]).map((l) => (
                   <button
                     key={l}
-                    onClick={() => { setLang(l); setShowLangs(false); }}
+                    onClick={() => { setLang(l as Lang); setShowLangs(false); }}
                     className={cn(
                       'w-full text-left px-4 py-2 text-sm hover:bg-slate-50 transition-colors',
                       lang === l ? 'font-semibold text-emerald-700' : 'text-slate-700'
                     )}
                   >
-                    {LANGS[l]}
+                    {LANGS[l as Lang]}
                   </button>
                 ))}
               </div>
@@ -143,19 +139,19 @@ export function Header() {
             <div className="absolute right-4 top-16 bg-white border rounded-xl shadow-xl py-2 min-w-[220px]">
               {currentUser ? (
                 <>
-                  <button onClick={() => { setShowMenu(false); router.push('/profile'); }} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50">Profil</button>
-                  <button onClick={() => { setShowMenu(false); router.push('/messages'); }} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50">Messages</button>
-                  <button onClick={() => { setShowMenu(false); router.push('/favorites'); }} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50">Favoris</button>
+                  <MenuItem onClick={() => { setShowMenu(false); router.push('/profile'); }}>{t('nav.profile', lang)}</MenuItem>
+                  <MenuItem onClick={() => { setShowMenu(false); router.push('/messages'); }}>{t('nav.messages', lang)}</MenuItem>
+                  <MenuItem onClick={() => { setShowMenu(false); router.push('/favorites'); }}>{t('nav.favorites', lang)}</MenuItem>
                   {currentUser.role === 'landlord' && (
-                    <button onClick={() => { setShowMenu(false); router.push('/landlord-dashboard'); }} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50">Tableau de bord</button>
+                    <MenuItem onClick={() => { setShowMenu(false); router.push('/landlord-dashboard'); }}>{t('nav.dashboard', lang)}</MenuItem>
                   )}
                   <hr className="my-1" />
-                  <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50">Déconnexion</button>
+                  <MenuItem onClick={handleLogout}>{t('profile.logout', lang)}</MenuItem>
                 </>
               ) : (
                 <>
-                  <button onClick={() => { setShowMenu(false); router.push('/login'); }} className="w-full text-left px-4 py-3 text-sm font-medium hover:bg-slate-50">Connexion</button>
-                  <button onClick={() => { setShowMenu(false); router.push('/register'); }} className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50">Inscription</button>
+                  <MenuItem onClick={() => { setShowMenu(false); router.push('/login'); }} className="font-medium">{t('nav.login', lang)}</MenuItem>
+                  <MenuItem onClick={() => { setShowMenu(false); router.push('/register'); }}>{t('nav.register', lang)}</MenuItem>
                 </>
               )}
             </div>
@@ -166,17 +162,28 @@ export function Header() {
   );
 }
 
+function MenuItem({ onClick, children, className }: { onClick: () => void; children: React.ReactNode; className?: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn('w-full text-left px-4 py-3 text-sm hover:bg-slate-50', className)}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function BottomNav() {
   const router = useRouter();
   const pathname = usePathname();
-  const { currentUser, notifications } = useAppStore();
+  const { lang, currentUser, notifications } = useAppStore();
   const unread = notifications.filter((n) => !n.read).length;
 
   const tabs = [
-    { href: '/', icon: '●', label: 'Explorer' },
-    { href: '/favorites', icon: '♥', label: 'Favoris' },
-    { href: '/messages', icon: '✉', label: 'Messages' },
-    { href: '/profile', icon: '☺', label: 'Profil' },
+    { href: '/', icon: '●', label: t('nav.home', lang) },
+    { href: '/favorites', icon: '♥', label: t('nav.favorites', lang) },
+    { href: '/messages', icon: '✉', label: t('nav.messages', lang) },
+    { href: '/profile', icon: '☺', label: t('nav.profile', lang) },
   ];
 
   return (

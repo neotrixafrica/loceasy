@@ -20,6 +20,8 @@ const translations: Record<Lang, Record<string, string>> = {
     'nav.login': 'Connexion',
     'nav.register': 'Inscription',
     'nav.notifications': 'Notifications',
+    'header.listYourHome': 'Mettre mon logement',
+    'header.searchHint': 'Chambre, studio, appart',
 
     // Hero
     'hero.title': 'Votre prochain logement vous attend',
@@ -309,6 +311,8 @@ const translations: Record<Lang, Record<string, string>> = {
     'nav.login': 'Login',
     'nav.register': 'Register',
     'nav.notifications': 'Notifications',
+    'header.listYourHome': 'List your home',
+    'header.searchHint': 'Room, studio, flat',
 
     // Hero
     'hero.title': 'Your next home is waiting',
