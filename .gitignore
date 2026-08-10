@@ -18,6 +18,9 @@ node_modules
 **/.next/
 /out/
 
+# uploads
+/server/public/uploads/
+
 # production
 /build
 
