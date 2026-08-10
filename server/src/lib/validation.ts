@@ -17,7 +17,7 @@ export const listingSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   price: z.number().positive('Price must be positive'),
-  type: z.enum(['chambre', 'studio', 'appartement']),
+  type: z.enum(['chambre', 'studio', 'appartement', 'maison', 'bureau']),
   city: z.string().min(1, 'City is required'),
   quartier: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
