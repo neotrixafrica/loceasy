@@ -260,14 +260,14 @@ export function ListingDetailPage({
               <div className="mb-6 hidden items-center gap-3 md:flex">
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 rounded-lg border border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+                  className="flex items-center gap-2 rounded-lg bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted"
                 >
                   <Share2 className="h-4 w-4" />
                   Partager
                 </button>
                 <button
                   onClick={toggleFavorite}
-                  className="flex items-center gap-2 rounded-lg border border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+                  className="flex items-center gap-2 rounded-lg bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted"
                 >
                   <Heart className={cn('h-4 w-4', isFavorite ? 'fill-destructive text-destructive' : '')} />
                   Favoris
@@ -275,21 +275,24 @@ export function ListingDetailPage({
               </div>
 
               {/* Key details */}
-              <div className="mb-6 grid grid-cols-3 gap-3 border-y border py-5">
-                <div className="text-center">
-                  <BedDouble className="mx-auto mb-1 h-5 w-5 text-primary" />
-                  <p className="text-xs text-muted-foreground">Pièces</p>
-                  <p className="font-semibold text-foreground">{listing.rooms}</p>
-                </div>
-                <div className="text-center">
-                  <Maximize className="mx-auto mb-1 h-5 w-5 text-primary" />
-                  <p className="text-xs text-muted-foreground">Superficie</p>
-                  <p className="font-semibold text-foreground">{listing.area ? `${listing.area} m²` : '-'}</p>
-                </div>
-                <div className="text-center">
-                  <Home className="mx-auto mb-1 h-5 w-5 text-primary" />
-                  <p className="text-xs text-muted-foreground">Type</p>
-                  <p className="font-semibold text-foreground">{typeLabels[listing.type] || listing.type}</p>
+              <div className="mb-6 rounded-2xl bg-muted/50 p-5">
+                <h2 className="font-display mb-4 text-lg font-bold text-foreground">Caractéristiques</h2>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-xl bg-card p-4 text-center shadow-sm">
+                    <BedDouble className="mx-auto mb-2 h-6 w-6 text-primary" />
+                    <p className="text-xs text-muted-foreground">Pièces</p>
+                    <p className="font-display font-semibold text-foreground">{listing.rooms ?? '-'}</p>
+                  </div>
+                  <div className="rounded-xl bg-card p-4 text-center shadow-sm">
+                    <Maximize className="mx-auto mb-2 h-6 w-6 text-primary" />
+                    <p className="text-xs text-muted-foreground">Superficie</p>
+                    <p className="font-display font-semibold text-foreground">{listing.area ? `${listing.area} m²` : '-'}</p>
+                  </div>
+                  <div className="rounded-xl bg-card p-4 text-center shadow-sm">
+                    <Home className="mx-auto mb-2 h-6 w-6 text-primary" />
+                    <p className="text-xs text-muted-foreground">Type</p>
+                    <p className="font-display font-semibold text-foreground">{typeLabels[listing.type] || listing.type}</p>
+                  </div>
                 </div>
               </div>
 
