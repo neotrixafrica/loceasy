@@ -92,7 +92,7 @@ export function ReviewsSection({ listingId }: { listingId: string }) {
           key={i}
           className={cn(
             'h-4 w-4',
-            i <= Math.round(value) ? 'fill-amber-400 text-amber-400' : 'text-slate-300'
+            i <= Math.round(value) ? 'fill-accent text-accent' : 'text-muted-foreground/40'
           )}
         />
       ))}
@@ -102,48 +102,48 @@ export function ReviewsSection({ listingId }: { listingId: string }) {
   if (loading) {
     return (
       <div className="mb-6">
-        <h2 className="mb-3 text-lg font-semibold text-slate-900">Avis</h2>
-        <p className="text-sm text-slate-500">Chargement des avis...</p>
+        <h2 className="font-display mb-3 text-lg font-semibold text-foreground">Avis</h2>
+        <p className="text-sm text-muted-foreground">Chargement des avis...</p>
       </div>
     );
   }
 
   return (
     <div className="mb-6">
-      <h2 className="mb-3 text-lg font-semibold text-slate-900">Avis</h2>
+      <h2 className="font-display mb-3 text-lg font-semibold text-foreground">Avis</h2>
 
       <div className="mb-4 flex items-center gap-2">
         {renderStars(data.average)}
-        <span className="text-sm font-medium text-slate-900">
+        <span className="text-sm font-medium text-foreground">
           {data.average > 0 ? data.average.toFixed(1) : '—'}
         </span>
-        <span className="text-sm text-slate-500">· {data.count} avis</span>
+        <span className="text-sm text-muted-foreground">· {data.count} avis</span>
       </div>
 
       {data.count === 0 && (
-        <p className="mb-4 text-sm text-slate-500">Aucun avis pour le moment.</p>
+        <p className="mb-4 text-sm text-muted-foreground">Aucun avis pour le moment.</p>
       )}
 
       <div className="mb-6 space-y-4">
         {data.reviews.map((review) => (
-          <div key={review.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+          <div key={review.id} className="rounded-xl border bg-muted p-4">
             <div className="mb-2 flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium text-slate-900">{review.tenant.name}</p>
-                <p className="text-xs text-slate-500">{formatDate(review.createdAt)}</p>
+                <p className="text-sm font-medium text-foreground">{review.tenant.name}</p>
+                <p className="text-xs text-muted-foreground">{formatDate(review.createdAt)}</p>
               </div>
               {renderStars(review.rating)}
             </div>
             {review.comment && (
-              <p className="text-sm leading-relaxed text-slate-700">{review.comment}</p>
+              <p className="text-sm leading-relaxed text-foreground">{review.comment}</p>
             )}
           </div>
         ))}
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="rounded-xl border border-slate-100 p-4">
-          <p className="mb-2 text-sm font-medium text-slate-900">Donner mon avis</p>
+        <form onSubmit={handleSubmit} className="rounded-xl border p-4">
+          <p className="mb-2 text-sm font-medium text-foreground">Donner mon avis</p>
           <div className="mb-3 flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((i) => (
               <button
@@ -159,8 +159,8 @@ export function ReviewsSection({ listingId }: { listingId: string }) {
                   className={cn(
                     'h-6 w-6',
                     i <= (hoverRating || rating)
-                      ? 'fill-amber-400 text-amber-400'
-                      : 'text-slate-300'
+                      ? 'fill-accent text-accent'
+                      : 'text-muted-foreground/40'
                   )}
                 />
               </button>
@@ -172,11 +172,11 @@ export function ReviewsSection({ listingId }: { listingId: string }) {
             placeholder="Partagez votre expérience..."
             className="mb-3 min-h-[80px] text-sm"
           />
-          {error && <p className="mb-2 text-xs text-red-500">{error}</p>}
+          {error && <p className="mb-2 text-xs text-destructive">{error}</p>}
           <Button
             type="submit"
             disabled={rating === 0 || isSubmitting}
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className="bg-primary hover:bg-primary/90"
           >
             Publier
           </Button>

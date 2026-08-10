@@ -127,7 +127,7 @@ export function HomePage() {
         {loading ? (
           <ListingGridSkeleton />
         ) : listings.length === 0 ? (
-          <p className="text-sm text-slate-500">{t('home.empty', lang)}</p>
+          <p className="text-sm text-muted-foreground">{t('home.empty', lang)}</p>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             {listings.map((listing) => (
