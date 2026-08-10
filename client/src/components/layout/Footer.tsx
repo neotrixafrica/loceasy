@@ -1,42 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Logo } from '@/components/shared/Logo';
 import { MapPin, Mail, Phone } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export function Footer() {
-  const [hidden, setHidden] = useState(false);
   const currentYear = new Date().getFullYear();
 
-  useEffect(() => {
-    let lastY = window.scrollY;
-    let ticking = false;
-
-    const onScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const y = window.scrollY;
-          setHidden(y > lastY && y > 100);
-          lastY = y;
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
   return (
-    <footer
-      className={cn(
-        'fixed md:static left-0 right-0 bottom-0 z-30 bg-primary text-primary-foreground mt-auto md:translate-y-0',
-        'transition-transform duration-300',
-        hidden ? 'translate-y-full' : 'translate-y-0'
-      )}
-    >
+    <footer className="hidden md:block bg-primary text-primary-foreground mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-12 text-center md:text-left">
           <div className="md:col-span-1">
