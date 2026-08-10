@@ -187,6 +187,9 @@ const translations: Record<Lang, Record<string, string>> = {
     'dashboard.noListings': 'Aucune annonce',
     'dashboard.noListings.desc': 'Ajoutez votre première annonce de logement',
     'dashboard.listing.add': 'Ajouter une annonce',
+    'dashboard.welcome': 'Bienvenue',
+    'dashboard.totalViews': 'Vues totales',
+    'dashboard.noBookings': 'Aucune demande de réservation',
 
     // Add Listing
     'addListing.title': 'Nouvelle annonce',
@@ -220,6 +223,9 @@ const translations: Record<Lang, Record<string, string>> = {
     'common.perMonth': '/mois',
     'common.nights': 'nuits',
     'common.night': 'nuit',
+    'common.available': 'Disponible',
+    'common.unavailable': 'Indisponible',
+    'common.tenant': 'Locataire',
 
     // Payment
     'payment.title': 'Paiement Mobile Money',
@@ -465,6 +471,9 @@ const translations: Record<Lang, Record<string, string>> = {
     'dashboard.noListings': 'No listings',
     'dashboard.noListings.desc': 'Add your first housing listing',
     'dashboard.listing.add': 'Add listing',
+    'dashboard.welcome': 'Welcome',
+    'dashboard.totalViews': 'Total views',
+    'dashboard.noBookings': 'No booking requests',
 
     // Add Listing
     'addListing.title': 'New listing',
@@ -498,6 +507,9 @@ const translations: Record<Lang, Record<string, string>> = {
     'common.perMonth': '/month',
     'common.nights': 'nights',
     'common.night': 'night',
+    'common.available': 'Available',
+    'common.unavailable': 'Unavailable',
+    'common.tenant': 'Tenant',
 
     // Payment
     'payment.title': 'Mobile Money Payment',
