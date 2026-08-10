@@ -387,7 +387,7 @@ export function ListingDetailPage({
                 <div className="space-y-2">
                   <button
                     onClick={handleBooking}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-medium text-white transition hover:bg-primary"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground shadow-md transition-all duration-200 hover:bg-primary hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
                   >
                     <CalendarDays className="h-4 w-4" />
                     Réserver
@@ -419,13 +419,13 @@ export function ListingDetailPage({
           <div className="flex gap-2">
             <button
               onClick={handleContact}
-              className="rounded-lg border border-slate-900 px-4 py-2.5 text-sm font-medium text-foreground"
+              className="rounded-lg border px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted"
             >
               Contacter
             </button>
             <button
               onClick={handleBooking}
-              className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white"
+              className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-md transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
             >
               Réserver
             </button>

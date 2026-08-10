@@ -5,6 +5,7 @@ import { useAppStore } from '@/lib/store';
 import { apiGet } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { ListingCard } from '@/components/shared/ListingCard';
+import { ScrollReveal } from '@/components/shared/ScrollReveal';
 import { t } from '@/lib/translations';
 import { Search, BedDouble, Building, Building2, Home, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -87,7 +88,7 @@ export function HomePage() {
               </div>
               <button
                 onClick={handleSearch}
-                className="flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-sm font-bold text-primary-foreground transition hover:bg-primary/90"
+                className="flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-sm font-bold text-primary-foreground shadow-lg transition-all duration-200 hover:bg-primary/90 hover:shadow-xl hover:-translate-y-0.5 active:scale-95"
               >
                 {t('hero.search.button', lang)}
               </button>
@@ -132,8 +133,10 @@ export function HomePage() {
           <p className="text-sm text-muted-foreground">{t('home.empty', lang)}</p>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
-            {listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
+            {listings.map((listing, i) => (
+              <ScrollReveal key={listing.id} delay={i * 75}>
+                <ListingCard listing={listing} />
+              </ScrollReveal>
             ))}
           </div>
         )}
@@ -154,7 +157,7 @@ export function HomePage() {
                 if (currentUser?.role === 'landlord') router.push('/add-listing');
                 else router.push('/register');
               }}
-              className="mt-6 rounded-full bg-accent px-8 py-3 text-sm font-bold text-accent-foreground transition hover:bg-accent/90"
+              className="mt-6 rounded-full bg-accent px-8 py-3 text-sm font-bold text-accent-foreground shadow-lg transition-all duration-200 hover:bg-accent/90 hover:shadow-xl hover:-translate-y-0.5 active:scale-95"
             >
               {currentUser?.role === 'landlord' ? t('home.cta.add', lang) : t('home.cta.signup', lang)}
             </button>

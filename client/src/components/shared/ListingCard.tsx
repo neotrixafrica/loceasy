@@ -66,12 +66,12 @@ export function ListingCard({ listing }: { listing: Listing }) {
       onClick={handleClick}
       className="group cursor-pointer"
     >
-      <div className="relative aspect-[20/19] w-full overflow-hidden rounded-xl bg-muted">
+      <div className="relative aspect-[20/19] w-full overflow-hidden rounded-xl bg-muted shadow-sm transition-shadow duration-300 group-hover:shadow-xl">
         {image && !imageError ? (
           <img
             src={image}
             alt={listing.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
             onError={() => setImageError(true)}
           />
         ) : (
