@@ -32,6 +32,9 @@ const translations: Record<Lang, Record<string, string>> = {
     'hero.stats.cities': 'Villes',
     'hero.stats.users': 'Utilisateurs',
 
+    // Time
+    'time.justNow': 'À l\'instant',
+
     // Popular Cities
     'cities.title': 'Villes populaires',
     'cities.subtitle': 'Explorez les logements disponibles dans les principales villes du Togo',
@@ -324,6 +327,9 @@ const translations: Record<Lang, Record<string, string>> = {
     'hero.stats.listings': 'Listings',
     'hero.stats.cities': 'Cities',
     'hero.stats.users': 'Users',
+
+    // Time
+    'time.justNow': 'Just now',
 
     // Popular Cities
     'cities.title': 'Popular cities',

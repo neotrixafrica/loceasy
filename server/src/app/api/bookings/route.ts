@@ -62,6 +62,8 @@ export async function POST(request: NextRequest) {
 
     const { startDate, endDate, message, listingId } = parsed.data;
 
+    const listing = await db.listing.findUnique({ where: { id: listingId }, select: { title: true, landlordId: true } });
+
     const booking = await db.booking.create({
       data: {
         status: 'pending',
@@ -72,6 +74,18 @@ export async function POST(request: NextRequest) {
         listingId,
       },
     });
+
+    if (listing) {
+      await db.notification.create({
+        data: {
+          userId: listing.landlordId,
+          type: 'booking',
+          title: 'Nouvelle demande de réservation',
+          body: `${currentUser.name} demande ${listing.title}`,
+          link: `booking:${booking.id}`,
+        },
+      });
+    }
 
     return NextResponse.json(booking, { status: 201 });
   } catch (error) {

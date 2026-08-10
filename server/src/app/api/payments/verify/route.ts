@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid verification code' }, { status: 400 });
     }
 
-    const [updatedPayment] = await db.$transaction([
+    const [updatedPayment, updatedBooking] = await db.$transaction([
       db.payment.update({
         where: { id: paymentId },
         data: { status: 'paid' },
@@ -56,6 +56,19 @@ export async function POST(request: NextRequest) {
         data: { paymentStatus: 'paid' },
       }),
     ]);
+
+    const listing = await db.listing.findUnique({ where: { id: updatedBooking.listingId }, select: { title: true, landlordId: true } });
+    if (listing) {
+      await db.notification.create({
+        data: {
+          userId: listing.landlordId,
+          type: 'payment',
+          title: 'Paiement reçu',
+          body: `${currentUser.name} a payé ${payment.amount.toLocaleString()} FCFA pour ${listing.title}`,
+          link: `booking:${payment.bookingId}`,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

@@ -1,15 +1,65 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
+import { api } from '@/lib/api';
 import { t } from '@/lib/translations';
-import { Bell, Check, CheckCheck, Trash2, ChevronLeft, MapPin, MessageCircle, CalendarDays, Info } from 'lucide-react';
+import { Bell, CheckCheck, Trash2, ChevronLeft, MessageCircle, CalendarDays, CreditCard, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import type { AppNotification } from '@/types';
 
 export function NotificationsPage() {
-  const { lang, notifications, markNotificationRead, markAllNotificationsRead, clearNotifications } = useAppStore();
+  const { lang, notifications, setNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications } = useAppStore();
   const router = useRouter();
+
+  useEffect(() => {
+    let mounted = true;
+    api.notifications.list()
+      .then((data) => mounted && setNotifications(data))
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, [setNotifications]);
+
+  const handleMarkAllRead = async () => {
+    try {
+      await api.notifications.markAllRead();
+      markAllNotificationsRead();
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleClear = async () => {
+    try {
+      await api.notifications.clear();
+      clearNotifications();
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleClick = async (notification: AppNotification) => {
+    if (!notification.read) {
+      try {
+        await api.notifications.markRead(notification.id);
+        markNotificationRead(notification.id);
+      } catch {
+        // ignore
+      }
+    }
+    if (notification.link) {
+      const parts = notification.link.split(':');
+      if (parts.length === 2 && parts[0] === 'conversation') {
+        router.push(`/messages/${parts[1]}`);
+      } else if (parts[0] === 'messages') {
+        router.push('/messages');
+      } else if (parts[0] === 'booking') {
+        router.push('/landlord-dashboard');
+      }
+    }
+  };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -21,39 +71,34 @@ export function NotificationsPage() {
     const diffHour = Math.floor(diffMs / 3600000);
     const diffDay = Math.floor(diffMs / 86400000);
 
-    if (diffMin < 1) return lang === 'fr' ? 'À l\'instant' : 'Just now';
+    if (diffMin < 1) return t('time.justNow', lang);
     if (diffMin < 60) return `${diffMin}m`;
     if (diffHour < 24) return `${diffHour}h`;
-    if (diffDay < 7) return `${diffDay}d`;
+    if (diffDay < 7) return `${diffDay}j`;
     return date.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' });
   };
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'booking':
-        return <CalendarDays className="h-4 w-4" />;
-      case 'message':
-        return <MessageCircle className="h-4 w-4" />;
-      default:
-        return <Info className="h-4 w-4" />;
+      case 'booking': return <CalendarDays className="h-4 w-4" />;
+      case 'message': return <MessageCircle className="h-4 w-4" />;
+      case 'payment': return <CreditCard className="h-4 w-4" />;
+      default: return <Info className="h-4 w-4" />;
     }
   };
 
   const getIconBg = (type: string, read: boolean) => {
     if (read) return 'bg-muted text-muted-foreground';
     switch (type) {
-      case 'booking':
-        return 'bg-amber-100 text-amber-700';
-      case 'message':
-        return 'bg-emerald-100 text-emerald-700';
-      default:
-        return 'bg-blue-100 text-blue-700';
+      case 'booking': return 'bg-amber-100 text-amber-700';
+      case 'message': return 'bg-emerald-100 text-emerald-700';
+      case 'payment': return 'bg-blue-100 text-blue-700';
+      default: return 'bg-slate-100 text-slate-700';
     }
   };
 
   return (
     <div className="flex-1 container mx-auto px-4 md:px-6 py-6 max-w-2xl">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => router.back()}>
@@ -73,13 +118,13 @@ export function NotificationsPage() {
         </div>
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllNotificationsRead} className="text-xs">
+            <Button variant="ghost" size="sm" onClick={handleMarkAllRead} className="text-xs">
               <CheckCheck className="h-4 w-4 mr-1" />
               {t('notifications.markAllRead', lang)}
             </Button>
           )}
           {notifications.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearNotifications} className="text-xs text-destructive">
+            <Button variant="ghost" size="sm" onClick={handleClear} className="text-xs text-destructive">
               <Trash2 className="h-4 w-4 mr-1" />
               {t('notifications.clear', lang)}
             </Button>
@@ -87,7 +132,6 @@ export function NotificationsPage() {
         </div>
       </div>
 
-      {/* Notifications list */}
       {notifications.length === 0 ? (
         <div className="text-center py-16">
           <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -99,30 +143,21 @@ export function NotificationsPage() {
           {notifications.map((notification) => (
             <button
               key={notification.id}
-              className={`w-full text-left p-4 rounded-xl border transition-colors ${
+              className={cn(
+                'w-full text-left p-4 rounded-xl border transition-colors',
                 notification.read
                   ? 'bg-card hover:bg-muted/50'
                   : 'bg-emerald-50/50 hover:bg-emerald-50 border-emerald-200'
-              }`}
-              onClick={() => {
-                if (!notification.read) markNotificationRead(notification.id);
-                if (notification.link) {
-                  const parts = notification.link.split(':');
-                  if (parts.length === 2 && parts[0] === 'conversation') {
-                    router.push(`/messages/${parts[1]}`);
-                  } else if (parts[0] === 'messages') {
-                    router.push('/messages');
-                  }
-                }
-              }}
+              )}
+              onClick={() => handleClick(notification)}
             >
               <div className="flex items-start gap-3">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${getIconBg(notification.type, notification.read)}`}>
+                <div className={cn('w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0', getIconBg(notification.type, notification.read))}>
                   {getIcon(notification.type)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className={`text-sm font-medium ${!notification.read ? 'font-semibold' : ''}`}>
+                    <h4 className={cn('text-sm font-medium', !notification.read ? 'font-semibold' : '')}>
                       {notification.title}
                     </h4>
                     <div className="flex items-center gap-2 flex-shrink-0 ml-2">

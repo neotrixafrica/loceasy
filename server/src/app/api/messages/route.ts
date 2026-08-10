@@ -117,6 +117,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    await db.notification.create({
+      data: {
+        userId: receiverId,
+        type: 'message',
+        title: `Nouveau message de ${currentUser.name}`,
+        body: content.length > 80 ? `${content.slice(0, 80)}...` : content,
+        link: `conversation:${currentUser.id}`,
+      },
+    });
+
     return NextResponse.json(message, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });

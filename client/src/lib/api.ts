@@ -1,4 +1,4 @@
-import type { PaymentInput, PaymentVerifyInput, BookingInput } from '@/types';
+import type { PaymentInput, PaymentVerifyInput, BookingInput, AppNotification } from '@/types';
 
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
@@ -103,5 +103,12 @@ export const api = {
   payments: {
     create: (data: PaymentInput) => apiPost<unknown>('/api/payments', data),
     verify: (data: PaymentVerifyInput) => apiPost<unknown>('/api/payments/verify', data),
+  },
+  notifications: {
+    list: () => apiGet<AppNotification[]>('/api/notifications'),
+    markAllRead: () => apiPatch<unknown>('/api/notifications', {}),
+    markRead: (id: string) => apiPatch<unknown>(`/api/notifications/${id}`, {}),
+    clear: () => apiDelete<unknown>('/api/notifications'),
+    delete: (id: string) => apiDelete<unknown>(`/api/notifications/${id}`),
   },
 };

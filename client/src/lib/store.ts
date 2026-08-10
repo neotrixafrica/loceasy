@@ -26,6 +26,7 @@ interface AppState {
   resetFilters: () => void;
 
   notifications: AppNotification[];
+  setNotifications: (notifications: AppNotification[]) => void;
   addNotification: (notification: Omit<AppNotification, 'id' | 'createdAt' | 'read'>) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
@@ -59,6 +60,7 @@ export const useAppStore = create<AppState>()(
       resetFilters: () => set({ filters: { ...defaultFilters } }),
 
       notifications: [],
+      setNotifications: (notifications) => set({ notifications }),
       addNotification: (notification) =>
         set((state) => ({
           notifications: [

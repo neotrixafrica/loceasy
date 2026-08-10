@@ -112,7 +112,7 @@ export interface Favorite {
 
 export interface AppNotification {
   id: string;
-  type: 'booking' | 'message' | 'system';
+  type: 'booking' | 'message' | 'payment' | 'system';
   title: string;
   body: string;
   read: boolean;

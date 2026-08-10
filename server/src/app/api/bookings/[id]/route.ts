@@ -59,6 +59,18 @@ export async function PATCH(
       data: { status: status as 'pending' | 'accepted' | 'rejected' | 'cancelled' },
     });
 
+    const listing = await db.listing.findUnique({ where: { id: booking.listingId }, select: { title: true } });
+    const statusLabel = status === 'accepted' ? 'acceptée' : status === 'rejected' ? 'refusée' : 'mise à jour';
+    await db.notification.create({
+      data: {
+        userId: booking.tenantId,
+        type: 'booking',
+        title: `Réservation ${statusLabel}`,
+        body: listing ? `Votre demande pour ${listing.title} a été ${statusLabel}` : `Votre demande de réservation a été ${statusLabel}`,
+        link: `booking:${booking.id}`,
+      },
+    });
+
     return NextResponse.json(booking);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update booking' }, { status: 500 });
