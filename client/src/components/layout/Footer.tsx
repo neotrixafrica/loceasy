@@ -34,8 +34,8 @@ export function Footer() {
           <div>
             <h4 className="font-display font-semibold mb-4">Légal</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/80">
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Conditions d&apos;utilisation</a></li>
-              <li><a href="#" className="hover:text-primary-foreground transition-colors">Confidentialité</a></li>
+              <li><a href="/conditions" className="hover:text-primary-foreground transition-colors">Conditions d&apos;utilisation</a></li>
+              <li><a href="/confidentialite" className="hover:text-primary-foreground transition-colors">Confidentialité</a></li>
               <li><a href="#" className="hover:text-primary-foreground transition-colors">Aide</a></li>
             </ul>
           </div>
