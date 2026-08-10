@@ -55,7 +55,7 @@ export function LandlordDashboard() {
       ]);
       const allListings = await listingsRes.json();
       const allBookings = await bookingsRes.json();
-      setListings(allListings.filter((l: Listing) => l.landlordId === currentUser?.id || allListings.find((al: Listing & { landlordId?: string }) => al.landlordId === currentUser?.id)));
+      setListings((allListings as (Listing & { landlordId?: string })[]).filter((l) => l.landlordId === currentUser?.id));
       // Since the listings endpoint doesn't filter by landlord, we need to filter client-side
       const myBookings = allBookings.filter((b: Booking) =>
         b.listing && true // allBookings is already filtered by landlordId

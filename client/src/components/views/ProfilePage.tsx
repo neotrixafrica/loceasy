@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 interface Booking {
   id: string;
   status: string;
+  paymentStatus: string;
   startDate: string;
   endDate: string;
   listing: {
@@ -214,6 +215,15 @@ export function ProfilePage() {
                         <CalendarDays className="h-3 w-3 inline mr-1" />
                         {booking.startDate} → {booking.endDate}
                       </p>
+                      {booking.status === 'accepted' && booking.paymentStatus !== 'paid' && (
+                        <Button
+                          size="sm"
+                          className="mt-3"
+                          onClick={() => router.push(`/payment/${booking.id}`)}
+                        >
+                          {lang === 'fr' ? 'Payer maintenant' : 'Pay now'}
+                        </Button>
+                      )}
                     </div>
                     <span className="font-semibold text-sm text-emerald-700">
                       {booking.listing?.price?.toLocaleString()} FCFA

@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
         listing: {
           select: { id: true, title: true, city: true, quartier: true, price: true, images: true },
         },
+        payment: true,
       },
       orderBy: { createdAt: 'desc' },
     });

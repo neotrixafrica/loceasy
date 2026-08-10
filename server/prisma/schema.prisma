@@ -19,6 +19,21 @@ enum BookingStatus {
   cancelled
 }
 
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum PaymentMethod {
+  flooz
+  tmoney
+  wave
+  orange_money
+  cash
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -77,18 +92,20 @@ model Listing {
 }
 
 model Booking {
-  id        String        @id @default(cuid())
-  status    BookingStatus @default(pending)
-  startDate DateTime
-  endDate   DateTime
-  message   String?
-  tenantId  String
-  listingId String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id            String        @id @default(cuid())
+  status        BookingStatus @default(pending)
+  paymentStatus PaymentStatus @default(pending)
+  startDate     DateTime
+  endDate       DateTime
+  message       String?
+  tenantId      String
+  listingId     String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  tenant  User    @relation("TenantBookings", fields: [tenantId], references: [id], onDelete: Cascade)
-  listing Listing @relation("ListingBookings", fields: [listingId], references: [id], onDelete: Cascade)
+  tenant  User     @relation("TenantBookings", fields: [tenantId], references: [id], onDelete: Cascade)
+  listing Listing  @relation("ListingBookings", fields: [listingId], references: [id], onDelete: Cascade)
+  payment Payment?
 
   @@index([tenantId])
   @@index([listingId])
@@ -139,4 +156,21 @@ model Review {
 
   @@unique([listingId, tenantId])
   @@index([listingId])
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  amount         Float
+  method         PaymentMethod
+  phone          String
+  status         PaymentStatus @default(pending)
+  transactionRef String?       @unique
+  bookingId      String        @unique
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([status])
 }

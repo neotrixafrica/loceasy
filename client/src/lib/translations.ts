@@ -192,6 +192,21 @@ const translations: Record<string, Record<string, string>> = {
     'common.fcfa': 'FCFA',
     'common.perMonth': '/mois',
 
+    // Payment
+    'payment.title': 'Paiement Mobile Money',
+    'payment.amount': 'Montant à payer',
+    'payment.method': 'Opérateur',
+    'payment.phone': 'Numéro Mobile Money',
+    'payment.simulation': 'Simulation : aucun vrai prélèvement ne sera effectué.',
+    'payment.initiate': 'Payer maintenant',
+    'payment.codeSent': 'Un code de confirmation a été envoyé au',
+    'payment.demoCode': 'Démo : entrez n\'importe quel code de 4 à 6 chiffres.',
+    'payment.code': 'Code de confirmation',
+    'payment.verify': 'Vérifier le paiement',
+    'payment.paid': 'Paiement confirmé',
+    'payment.paidMessage': 'Votre réservation est confirmée. Le propriétaire a été notifié.',
+    'payment.notFound': 'Réservation introuvable',
+
     // Footer
     'footer.about': 'À propos',
     'footer.contact': 'Contact',
@@ -427,6 +442,21 @@ const translations: Record<string, Record<string, string>> = {
     'common.fcfa': 'FCFA',
     'common.perMonth': '/month',
 
+    // Payment
+    'payment.title': 'Mobile Money Payment',
+    'payment.amount': 'Amount to pay',
+    'payment.method': 'Operator',
+    'payment.phone': 'Mobile Money number',
+    'payment.simulation': 'Simulation: no real charge will be made.',
+    'payment.initiate': 'Pay now',
+    'payment.codeSent': 'A confirmation code has been sent to',
+    'payment.demoCode': 'Demo: enter any 4 to 6 digit code.',
+    'payment.code': 'Confirmation code',
+    'payment.verify': 'Verify payment',
+    'payment.paid': 'Payment confirmed',
+    'payment.paidMessage': 'Your booking is confirmed. The landlord has been notified.',
+    'payment.notFound': 'Booking not found',
+
     // Footer
     'footer.about': 'About',
     'footer.contact': 'Contact',
@@ -484,7 +514,6 @@ const translations: Record<string, Record<string, string>> = {
     'nav.dashboard': 'Xexeame ɖe xɔxɔ me',
     'nav.addListing': 'Dogbɛ asinyalawo',
     'nav.myBookings': 'Ne asinyala',
-    'nav.myBookings': 'Ne reservationwo',
     'nav.login': 'Tsɔ',
     'nav.register': 'Dzɔ egbe',
     'nav.notifications': 'Nɔnume',
