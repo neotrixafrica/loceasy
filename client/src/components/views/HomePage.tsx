@@ -26,6 +26,7 @@ export function HomePage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -43,6 +44,7 @@ export function HomePage() {
   };
 
   const handleCategory = (key: string) => {
+    setActiveCategory(key);
     setFilters({ type: key });
     router.push('/search');
   };
@@ -105,12 +107,12 @@ export function HomePage() {
                   key={cat.key}
                   onClick={() => handleCategory(cat.key)}
                   className={cn(
-                    'flex shrink-0 flex-col items-center gap-2 border-b-2 border-transparent pb-2 pt-1 text-xs font-medium text-muted-foreground transition hover:text-foreground',
-                    'hover:border-primary'
+                    'group flex shrink-0 flex-col items-center gap-2 border-b-2 border-transparent pb-2 pt-1 text-xs font-medium transition duration-200',
+                    activeCategory === cat.key ? 'text-primary border-primary' : 'text-muted-foreground hover:text-foreground hover:border-primary/40'
                   )}
                 >
-                  <Icon className="h-6 w-6" />
-                  {cat.label}
+                  <Icon className="h-6 w-6 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:scale-110" />
+                  <span className="transition-transform duration-200 group-hover:-translate-y-0.5">{cat.label}</span>
                 </button>
               );
             })}
