@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { t, TOGO_CITIES, TOGO_QUARTIERS, AMENITIES_LIST } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,7 +77,7 @@ export function AddListingPage() {
       await api.listings.create({
         ...form,
         price: Number(form.price),
-        rooms: Number(form.rooms),
+        rooms: form.rooms ? Number(form.rooms) : null,
         area: form.area ? Number(form.area) : null,
         amenities,
         images: imageUrls.filter(Boolean),
@@ -85,7 +85,8 @@ export function AddListingPage() {
       toast.success(t('addListing.success', lang));
       router.push('/landlord-dashboard');
     } catch (error) {
-      const msg = error instanceof Error ? error.message : t('common.error', lang);
+      const detail = error instanceof ApiError ? (error.data as { error?: string })?.error : undefined;
+      const msg = detail || (error instanceof Error ? error.message : t('common.error', lang));
       toast.error(msg);
     } finally {
       setLoading(false);
