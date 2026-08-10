@@ -118,7 +118,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
       {/* Conversation list */}
       <div className={cn('w-full md:w-80 border-r flex-shrink-0', activeConversation ? 'hidden md:block' : 'block')}>
         <div className="p-4 border-b">
-          <h2 className="font-semibold">{t('messages.title', lang)}</h2>
+          <h2 className="font-display font-semibold">{t('messages.title', lang)}</h2>
         </div>
         <div className="overflow-y-auto max-h-[calc(100vh-7rem)]">
           {conversations.length === 0 ? (
@@ -132,12 +132,12 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
                 key={conv.partnerId ?? conv.partnerName + conv.lastMessage.createdAt}
                 className={cn(
                   'w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors border-b text-left',
-                  activeConversation === conv.partnerId ? 'bg-emerald-50' : ''
+                  activeConversation === conv.partnerId ? 'bg-primary/5' : ''
                 )}
                 onClick={() => setActiveConversation(conv.partnerId)}
               >
-                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-medium text-emerald-700">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-medium text-primary">
                     {conv.partnerName.charAt(0)}
                   </span>
                 </div>
@@ -154,7 +154,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
                   </p>
                 </div>
                 {conv.unread > 0 && (
-                  <span className="w-5 h-5 bg-emerald-700 text-white text-[10px] rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="w-5 h-5 bg-primary text-primary-foreground text-[10px] rounded-full flex items-center justify-center flex-shrink-0">
                     {conv.unread}
                   </span>
                 )}
@@ -194,12 +194,12 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
                       className={cn(
                         'max-w-[75%] px-3 py-2 rounded-xl text-sm',
                         isMine
-                          ? 'bg-emerald-700 text-white rounded-br-sm'
+                          ? 'bg-primary text-primary-foreground rounded-br-sm'
                           : 'bg-muted rounded-bl-sm'
                       )}
                     >
                       <p>{msg.content}</p>
-                      <p className={cn('text-[10px] mt-1', isMine ? 'text-emerald-200' : 'text-muted-foreground')}>
+                      <p className={cn('text-[10px] mt-1', isMine ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
                         {formatTime(msg.createdAt)}
                       </p>
                     </div>
@@ -240,8 +240,8 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
 
 function Avatar({ name, className }: { name: string; className?: string }) {
   return (
-    <div className={cn('w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center', className)}>
-      <span className="text-xs font-medium text-emerald-700">{name.charAt(0)}</span>
+    <div className={cn('w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center', className)}>
+      <span className="text-xs font-medium text-primary">{name.charAt(0)}</span>
     </div>
   );
 }

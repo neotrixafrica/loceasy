@@ -42,7 +42,7 @@ export function FavoritesPage() {
 
   return (
     <div className="flex-1 container mx-auto px-4 md:px-6 py-6">
-      <h1 className="text-xl md:text-2xl font-bold mb-6">{t('favorites.title', lang)}</h1>
+      <h1 className="font-display text-xl md:text-2xl font-bold mb-6">{t('favorites.title', lang)}</h1>
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
