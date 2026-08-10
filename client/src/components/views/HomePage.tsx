@@ -100,20 +100,34 @@ export function HomePage() {
       {/* Categories */}
       <section className="border-b bg-card py-6">
         <div className="mx-auto max-w-7xl px-4">
-          <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-2 md:justify-center">
+          <div className="scrollbar-hide flex gap-6 md:gap-8 overflow-x-auto py-3 md:justify-center">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
+              const isActive = activeCategory === cat.key;
               return (
                 <button
                   key={cat.key}
                   onClick={() => handleCategory(cat.key)}
                   className={cn(
-                    'group flex shrink-0 flex-col items-center gap-2 border-b-2 border-transparent pb-2 pt-1 text-xs font-medium transition duration-200',
-                    activeCategory === cat.key ? 'text-primary border-primary' : 'text-muted-foreground hover:text-foreground hover:border-primary/40'
+                    'group relative flex shrink-0 flex-col items-center gap-2 pb-3 pt-2 px-2 min-w-[72px] text-sm font-semibold transition-all duration-200',
+                    isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  <Icon className="h-6 w-6 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:scale-110" />
-                  <span className="transition-transform duration-200 group-hover:-translate-y-0.5">{cat.label}</span>
+                  <Icon
+                    className={cn(
+                      'h-7 w-7 transition-all duration-200 ease-out',
+                      isActive ? 'text-primary scale-110 -translate-y-0.5' : 'group-hover:text-primary group-hover:scale-110 group-hover:-translate-y-0.5'
+                    )}
+                  />
+                  <span className={cn('transition-all duration-200', isActive ? 'text-foreground' : 'group-hover:text-foreground group-hover:-translate-y-0.5')}>
+                    {cat.label}
+                  </span>
+                  <span
+                    className={cn(
+                      'absolute bottom-0 left-0 right-0 h-0.5 rounded-full transition-all duration-300',
+                      isActive ? 'bg-primary scale-x-100' : 'bg-primary/0 scale-x-0 group-hover:bg-primary/30 group-hover:scale-x-100'
+                    )}
+                  />
                 </button>
               );
             })}
