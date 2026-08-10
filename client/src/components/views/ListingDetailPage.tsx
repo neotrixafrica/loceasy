@@ -78,7 +78,7 @@ export function ListingDetailPage({
   }, [currentUser, listing]);
 
   useEffect(() => {
-    if (!listing) return;
+    if (!listing?.id) return;
     apiGet<{ average: number; count: number }>(`/api/reviews?listingId=${listing.id}`)
       .then((data) => setReviewStats({ average: data.average, count: data.count }))
       .catch(() => {});

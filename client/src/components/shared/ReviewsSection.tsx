@@ -33,6 +33,7 @@ export function ReviewsSection({ listingId }: { listingId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchReviews = async () => {
+    if (!listingId) return;
     try {
       const res = await apiFetch(`/api/reviews?listingId=${listingId}`);
       if (res.ok) {
@@ -47,6 +48,10 @@ export function ReviewsSection({ listingId }: { listingId: string }) {
   };
 
   useEffect(() => {
+    if (!listingId) {
+      setLoading(false);
+      return;
+    }
     fetchReviews();
   }, [listingId]);
 

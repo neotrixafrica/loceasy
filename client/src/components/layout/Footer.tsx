@@ -1,15 +1,46 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Logo } from '@/components/shared/Logo';
 import { MapPin, Mail, Phone } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function Footer() {
+  const [hidden, setHidden] = useState(false);
   const currentYear = new Date().getFullYear();
 
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const y = window.scrollY;
+          setHidden(y > lastY && y > 100);
+          lastY = y;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
-    <footer className="bg-primary text-primary-foreground mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
+    <footer
+      className={cn(
+        'fixed md:static left-0 right-0 bottom-0 z-30 bg-primary text-primary-foreground mt-auto md:translate-y-0',
+        'transition-transform duration-300',
+        hidden ? 'translate-y-full' : 'translate-y-0'
+      )}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-12 text-center md:text-left">
           <div className="md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
               <Logo showText={false} />
               <span className="font-display font-extrabold text-xl tracking-tight text-primary-foreground">
                 Loc<span className="text-accent">Easy</span>
@@ -41,15 +72,15 @@ export function Footer() {
           <div>
             <h4 className="font-display font-semibold mb-4">Contact</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/80">
-              <li className="flex items-center gap-2">
+              <li className="flex items-center justify-center md:justify-start gap-2">
                 <MapPin className="h-4 w-4" />
                 Lomé, Togo
               </li>
-              <li className="flex items-center gap-2">
+              <li className="flex items-center justify-center md:justify-start gap-2">
                 <Mail className="h-4 w-4" />
                 contact@loceasy.tg
               </li>
-              <li className="flex items-center gap-2">
+              <li className="flex items-center justify-center md:justify-start gap-2">
                 <Phone className="h-4 w-4" />
                 +228 90 00 00 00
               </li>
@@ -57,7 +88,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-primary-foreground/10 text-center text-sm text-primary-foreground/70">
+        <div className="mt-10 md:mt-12 pt-6 md:pt-8 border-t border-primary-foreground/10 text-center text-sm text-primary-foreground/70">
           © {currentYear} LocEasy. Tous droits réservés.
         </div>
       </div>
