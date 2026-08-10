@@ -9,7 +9,7 @@ import { ListingCard } from '@/components/shared/ListingCard';
 import { Search, Map, LayoutGrid, X, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import dynamic from 'next/dynamic';
-import type { Listing } from '@/types';
+import type { Listing, Lang } from '@/types';
 
 const MapView = dynamic(() => import('@/components/shared/MapView'), {
   ssr: false,
@@ -278,7 +278,7 @@ export function SearchPage() {
   );
 }
 
-function SearchInput({ value, onChange, lang }: { value: string; onChange: (v: string) => void; lang: string }) {
+function SearchInput({ value, onChange, lang }: { value: string; onChange: (v: string) => void; lang: Lang }) {
   return (
     <div className="relative min-w-[180px] flex-1">
       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

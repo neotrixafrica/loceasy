@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { MapPin } from 'lucide-react';
-import type { Listing } from '@/types';
+import type { Listing, Lang } from '@/types';
 
 export function BookingFormPage({ listingId }: { listingId?: string }) {
   const { lang, currentUser } = useAppStore();
@@ -161,7 +161,7 @@ export function BookingFormPage({ listingId }: { listingId?: string }) {
   );
 }
 
-function CostSummary({ days, total, lang }: { days: number; total: number; lang: string }) {
+function CostSummary({ days, total, lang }: { days: number; total: number; lang: Lang }) {
   return (
     <Card className="bg-emerald-50 border-emerald-200">
       <CardContent className="p-4">

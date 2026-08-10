@@ -74,12 +74,14 @@ export const api = {
     me: () => apiGet<{ id: string; email: string; name: string; phone?: string | null; role: string; avatar?: string | null; verified: boolean; city?: string | null }>('/api/auth/me'),
   },
   listings: {
-    list: (params?: { city?: string; type?: string; minPrice?: number; maxPrice?: number }) => {
+    list: (params?: { city?: string; quartier?: string; type?: string; minPrice?: number; maxPrice?: number; search?: string }) => {
       const search = new URLSearchParams();
       if (params?.city) search.set('city', params.city);
+      if (params?.quartier) search.set('quartier', params.quartier);
       if (params?.type) search.set('type', params.type);
       if (params?.minPrice) search.set('minPrice', String(params.minPrice));
       if (params?.maxPrice) search.set('maxPrice', String(params.maxPrice));
+      if (params?.search) search.set('search', params.search);
       return apiGet<unknown[]>(`/api/listings?${search.toString()}`);
     },
     get: (id: string) => apiGet<unknown>(`/api/listings/${id}`),

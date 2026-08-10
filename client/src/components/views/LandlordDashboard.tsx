@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { LayoutDashboard, Building2, Clock, CheckCircle, XCircle, PlusCircle, Trash2, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Listing, Booking } from '@/types';
+import type { Listing, Booking, Lang } from '@/types';
 
 type Tab = 'listings' | 'bookings';
 
@@ -141,7 +141,7 @@ function Tabs({ activeTab, onChange, listingsCount, bookingsCount, pendingCount,
   listingsCount: number;
   bookingsCount: number;
   pendingCount: number;
-  lang: string;
+  lang: Lang;
 }) {
   return (
     <div className="flex border-b mb-4">
@@ -173,7 +173,7 @@ function Tabs({ activeTab, onChange, listingsCount, bookingsCount, pendingCount,
 
 function ListingsTab({ listings, lang, onDelete, onView, loading }: {
   listings: Listing[];
-  lang: string;
+  lang: Lang;
   onDelete: (id: string) => void;
   onView: (id: string) => void;
   loading: boolean;
@@ -244,7 +244,7 @@ function ListingImage({ images }: { images: string[] }) {
 
 function BookingsTab({ bookings, lang, onAction, loading }: {
   bookings: Booking[];
-  lang: string;
+  lang: Lang;
   onAction: (id: string, status: 'accepted' | 'rejected') => void;
   loading: boolean;
 }) {
@@ -267,7 +267,7 @@ function BookingsTab({ bookings, lang, onAction, loading }: {
   );
 }
 
-function BookingCard({ booking, lang, onAction }: { booking: Booking; lang: string; onAction: (id: string, status: 'accepted' | 'rejected') => void }) {
+function BookingCard({ booking, lang, onAction }: { booking: Booking; lang: Lang; onAction: (id: string, status: 'accepted' | 'rejected') => void }) {
   return (
     <Card>
       <CardContent className="p-4">
@@ -308,7 +308,7 @@ function BookingCard({ booking, lang, onAction }: { booking: Booking; lang: stri
   );
 }
 
-function StatusBadge({ status, lang }: { status: string; lang: string }) {
+function StatusBadge({ status, lang }: { status: string; lang: Lang }) {
   const className = {
     pending: 'bg-amber-100 text-amber-800',
     accepted: 'bg-emerald-100 text-emerald-800',

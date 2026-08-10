@@ -134,7 +134,7 @@ export function ListingDetailPage({
   };
 
   const handleContact = () => {
-    if (!currentUser) {
+    if (!currentUser || !listing.landlord) {
       router.push('/login');
       return;
     }
@@ -327,6 +327,7 @@ export function ListingDetailPage({
               )}
 
               {/* Host */}
+              {listing.landlord && (
               <div className="mb-6 border-y border-slate-100 py-5">
                 <h2 className="mb-3 text-lg font-semibold text-slate-900">Hôte</h2>
                 <div className="flex items-center gap-3">
@@ -352,6 +353,7 @@ export function ListingDetailPage({
                   </div>
                 </div>
               </div>
+              )}
 
               {/* Reviews */}
               <ReviewsSection listingId={listing.id} />

@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Mail, Phone, MapPin, CalendarDays, LogOut, Building2, MessageCircle, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import type { Booking, User } from '@/types';
+import type { Booking, User, Lang } from '@/types';
 
 const statusClass: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-800',
@@ -93,7 +93,7 @@ export function ProfilePage() {
   );
 }
 
-function ProfileHeader({ user, lang }: { user: { name: string; email: string; phone?: string | null; city?: string | null; verified: boolean; role: string }; lang: string }) {
+function ProfileHeader({ user, lang }: { user: { name: string; email: string; phone?: string | null; city?: string | null; verified: boolean; role: string }; lang: Lang }) {
   return (
     <Card className="mb-6">
       <CardContent className="p-6">
@@ -145,7 +145,7 @@ function QuickActions({
   router,
 }: {
   user: { role: string };
-  lang: string;
+  lang: Lang;
   router: ReturnType<typeof useRouter>;
 }) {
   return (
@@ -196,7 +196,7 @@ function BookingList({
   router,
 }: {
   bookings: Booking[];
-  lang: string;
+  lang: Lang;
   router: ReturnType<typeof useRouter>;
 }) {
   return (

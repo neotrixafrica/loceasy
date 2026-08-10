@@ -63,6 +63,7 @@ export interface Booking {
   message?: string | null;
   tenantId: string;
   listingId: string;
+  tenant?: Pick<User, 'id' | 'name' | 'phone' | 'avatar'>;
   listing?: Listing;
   payment?: Payment | null;
   createdAt: string;

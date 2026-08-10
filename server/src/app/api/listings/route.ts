@@ -78,18 +78,20 @@ export async function POST(request: NextRequest) {
     const parsed = listingSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.errors.map((e) => e.message).join(', ') },
+        { error: parsed.error.issues.map((e) => e.message).join(', ') },
         { status: 400 }
       );
     }
 
-    const data = parsed.data;
+    const data: Record<string, unknown> = { ...parsed.data, landlordId: currentUser.id };
+    for (const key of Object.keys(data)) {
+      if (data[key] === null || data[key] === undefined) {
+        delete data[key];
+      }
+    }
 
     const listing = await db.listing.create({
-      data: {
-        ...data,
-        landlordId: currentUser.id,
-      },
+      data: data as any,
     });
 
     return NextResponse.json(listing, { status: 201 });

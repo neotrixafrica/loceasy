@@ -43,7 +43,7 @@ export async function PATCH(
     if (!existing) {
       return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
-    if (existing.landlordId !== currentUser.id && currentUser.role !== 'admin') {
+    if (existing.landlordId !== currentUser.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -51,16 +51,21 @@ export async function PATCH(
     const parsed = listingSchema.partial().safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.errors.map((e) => e.message).join(', ') },
+        { error: parsed.error.issues.map((e) => e.message).join(', ') },
         { status: 400 }
       );
     }
 
-    const { ...updateData } = parsed.data;
+    const updateData: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(parsed.data)) {
+      if (value !== undefined && value !== null) {
+        updateData[key] = value;
+      }
+    }
 
     const listing = await db.listing.update({
       where: { id },
-      data: updateData,
+      data: updateData as any,
     });
 
     return NextResponse.json(listing);
@@ -84,7 +89,7 @@ export async function DELETE(
     if (!existing) {
       return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
-    if (existing.landlordId !== currentUser.id && currentUser.role !== 'admin') {
+    if (existing.landlordId !== currentUser.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

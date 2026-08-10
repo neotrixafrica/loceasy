@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header, BottomNav } from '@/components/layout/Header';
 import { BookingFormPage } from '@/components/views/BookingFormPage';
 
-export default function BookingForm() {
+function BookingFormContent() {
   const searchParams = useSearchParams();
   const listingId = searchParams.get('listingId') ?? undefined;
 
@@ -16,5 +17,13 @@ export default function BookingForm() {
       </main>
       <BottomNav />
     </div>
+  );
+}
+
+export default function BookingForm() {
+  return (
+    <Suspense>
+      <BookingFormContent />
+    </Suspense>
   );
 }
