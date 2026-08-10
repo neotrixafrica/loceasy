@@ -100,7 +100,7 @@ export function HomePage() {
       {/* Categories */}
       <section className="border-b bg-card py-6">
         <div className="mx-auto max-w-7xl px-4">
-          <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-2">
+          <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-2 md:justify-center">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               return (
