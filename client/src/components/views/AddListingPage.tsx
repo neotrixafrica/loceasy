@@ -94,7 +94,7 @@ export function AddListingPage() {
 
   return (
     <div className="flex-1 container mx-auto px-4 md:px-6 py-6 max-w-2xl">
-      <h1 className="text-xl md:text-2xl font-bold mb-6">{t('addListing.title', lang)}</h1>
+      <h1 className="font-display text-xl md:text-2xl font-bold mb-6">{t('addListing.title', lang)}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
@@ -218,7 +218,7 @@ export function AddListingPage() {
                     className={cn(
                       'px-3 py-1.5 rounded-full text-xs font-medium transition-colors border',
                       amenities.includes(amenity)
-                        ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
+                        ? 'bg-primary/10 border-primary/30 text-primary'
                         : 'bg-muted border-transparent text-muted-foreground hover:bg-muted/80'
                     )}
                     onClick={() => toggleAmenity(amenity)}
