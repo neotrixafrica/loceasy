@@ -1,14 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mkdir, writeFile } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
-import { randomUUID } from 'crypto';
+import { v2 as cloudinary } from 'cloudinary';
+import { Readable } from 'stream';
 import { getCurrentUser } from '@/lib/session';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 const MAX_SIZE = 5 * 1024 * 1024;
+
+function uploadToCloudinary(buffer: Buffer, filename: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'loceasy',
+        resource_type: 'image',
+        filename,
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else if (result?.secure_url) resolve(result.secure_url);
+        else reject(new Error('Cloudinary upload failed'));
+      }
+    );
+    Readable.from(buffer).pipe(uploadStream);
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,20 +52,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 413 });
     }
 
-    const originalName = file.name || 'image.jpg';
-    const ext = originalName.split('.').pop()?.toLowerCase() || 'jpg';
-    const safeExt = ALLOWED_EXTENSIONS.includes(ext) ? ext : 'jpg';
-    const fileName = `${randomUUID()}.${safeExt}`;
-
-    if (!existsSync(UPLOAD_DIR)) {
-      await mkdir(UPLOAD_DIR, { recursive: true });
-    }
-
     const buffer = Buffer.from(await file.arrayBuffer());
-    const filePath = path.join(UPLOAD_DIR, fileName);
-    await writeFile(filePath, buffer);
+    const url = await uploadToCloudinary(buffer, file.name || 'image.jpg');
 
-    const url = `/uploads/${fileName}`;
     return NextResponse.json({ url });
   } catch (error) {
     console.error('POST /api/upload error:', error);
