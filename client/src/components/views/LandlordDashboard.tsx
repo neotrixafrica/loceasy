@@ -87,9 +87,9 @@ export function LandlordDashboard() {
   const acceptedCount = bookings.filter((b) => b.status === 'accepted').length;
 
   const stats = [
-    { label: t('dashboard.totalListings', lang), value: listings.length, icon: Building2, color: 'text-emerald-700' },
-    { label: t('dashboard.pendingRequests', lang), value: pendingCount, icon: Clock, color: 'text-amber-600' },
-    { label: t('dashboard.activeBookings', lang), value: acceptedCount, icon: CheckCircle, color: 'text-emerald-600' },
+    { label: t('dashboard.totalListings', lang), value: listings.length, icon: Building2, color: 'text-primary' },
+    { label: t('dashboard.pendingRequests', lang), value: pendingCount, icon: Clock, color: 'text-amber-700' },
+    { label: t('dashboard.activeBookings', lang), value: acceptedCount, icon: CheckCircle, color: 'text-primary' },
     { label: t('dashboard.totalViews', lang), value: 127, icon: Eye, color: 'text-blue-600' },
   ];
 
@@ -97,7 +97,7 @@ export function LandlordDashboard() {
     <div className="flex-1 container mx-auto px-4 md:px-6 py-6 max-w-5xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold">{t('dashboard.title', lang)}</h1>
+          <h1 className="font-display text-xl md:text-2xl font-bold">{t('dashboard.title', lang)}</h1>
           <p className="text-sm text-muted-foreground">
             {t('dashboard.welcome', lang)}, {currentUser.name}
           </p>
@@ -154,14 +154,14 @@ function Tabs({ activeTab, onChange, listingsCount, bookingsCount, pendingCount,
           className={cn(
             'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors',
             activeTab === tab.key
-              ? 'border-emerald-700 text-emerald-700'
+              ? 'border-primary text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'
           )}
           onClick={() => onChange(tab.key)}
         >
           {tab.label} ({tab.count})
           {tab.badge ? (
-            <span className="ml-1.5 px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] rounded-full font-semibold">
+            <span className="ml-1.5 px-1.5 py-0.5 bg-amber-100 text-amber-900 text-[10px] rounded-full font-semibold">
               {tab.badge}
             </span>
           ) : null}
@@ -183,7 +183,7 @@ function ListingsTab({ listings, lang, onDelete, onView, loading }: {
     return (
       <div className="text-center py-12">
         <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-1">{t('dashboard.noListings', lang)}</h3>
+        <h3 className="font-display text-lg font-semibold mb-1">{t('dashboard.noListings', lang)}</h3>
         <p className="text-muted-foreground text-sm">{t('dashboard.noListings.desc', lang)}</p>
       </div>
     );
@@ -195,12 +195,12 @@ function ListingsTab({ listings, lang, onDelete, onView, loading }: {
         <div key={listing.id} className="bg-card border rounded-xl p-4 flex items-center gap-4">
           <ListingImage images={listing.images} />
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-sm truncate">{listing.title}</h3>
+            <h3 className="font-display font-medium text-sm truncate">{listing.title}</h3>
             <p className="text-xs text-muted-foreground">
               {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
             </p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm font-semibold text-emerald-700">
+              <span className="text-sm font-semibold text-primary">
                 {listing.price.toLocaleString()} {t('common.fcfa', lang)}
               </span>
               <Badge variant="secondary" className="text-[10px]">
@@ -208,7 +208,7 @@ function ListingsTab({ listings, lang, onDelete, onView, loading }: {
               </Badge>
               <Badge
                 variant={listing.available ? 'default' : 'secondary'}
-                className={cn('text-[10px]', listing.available ? 'bg-emerald-100 text-emerald-800' : '')}
+                className={cn('text-[10px]', listing.available ? 'bg-primary/10 text-primary' : '')}
               >
                 {listing.available ? t('common.available', lang) : t('common.unavailable', lang)}
               </Badge>
@@ -234,8 +234,8 @@ function ListingImage({ images }: { images: string[] }) {
       {images[0] ? (
         <img src={images[0]} alt="" className="w-full h-full object-cover" />
       ) : (
-        <div className="w-full h-full bg-emerald-50 flex items-center justify-center">
-          <Building2 className="h-6 w-6 text-emerald-600" />
+        <div className="w-full h-full bg-primary/5 flex items-center justify-center">
+          <Building2 className="h-6 w-6 text-primary" />
         </div>
       )}
     </div>
@@ -276,7 +276,7 @@ function BookingCard({ booking, lang, onAction }: { booking: Booking; lang: Lang
             <div className="flex items-center gap-2 mb-2">
               <StatusBadge status={booking.status} lang={lang} />
             </div>
-            <h3 className="font-medium text-sm">{booking.listing?.title}</h3>
+            <h3 className="font-display font-medium text-sm">{booking.listing?.title}</h3>
             <p className="text-xs text-muted-foreground mt-1">
               {t('common.tenant', lang)}: {booking.tenant?.name}
               {booking.tenant?.phone && ` — ${booking.tenant.phone}`}
@@ -310,11 +310,11 @@ function BookingCard({ booking, lang, onAction }: { booking: Booking; lang: Lang
 
 function StatusBadge({ status, lang }: { status: string; lang: Lang }) {
   const className = {
-    pending: 'bg-amber-100 text-amber-800',
-    accepted: 'bg-emerald-100 text-emerald-800',
-    rejected: 'bg-red-100 text-red-800',
-    cancelled: 'bg-gray-100 text-gray-800',
-  }[status] || 'bg-gray-100 text-gray-800';
+    pending: 'bg-amber-100 text-amber-900',
+    accepted: 'bg-primary/10 text-primary',
+    rejected: 'bg-destructive/10 text-destructive',
+    cancelled: 'bg-muted text-muted-foreground',
+  }[status] || 'bg-muted text-muted-foreground';
 
   return (
     <Badge className={className}>
