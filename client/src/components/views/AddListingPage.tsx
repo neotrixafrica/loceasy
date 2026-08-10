@@ -237,22 +237,33 @@ export function AddListingPage() {
         <Card>
           <CardContent className="p-5 space-y-3">
             <label className="text-sm font-medium block">{t('addListing.images', lang)}</label>
-            {imageUrls.map((url, index) => (
-              <div key={index} className="space-y-2">
-                <ImageUploader value={url} onChange={(value) => updateImageUrl(index, value)} disabled={loading} />
-                {imageUrls.length > 1 && (
-                  <div className="text-right">
-                    <Button type="button" variant="ghost" size="sm" onClick={() => removeImageUrl(index)}>
-                      <X className="h-3 w-3 mr-1" />
-                      {t('common.delete', lang)}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-            <Button type="button" variant="outline" size="sm" onClick={addImageUrl}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {imageUrls.map((url, index) => (
+                <div key={index} className="relative">
+                  <ImageUploader value={url} onChange={(value) => updateImageUrl(index, value)} disabled={loading} />
+                  {imageUrls.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeImageUrl(index)}
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-white flex items-center justify-center shadow-sm hover:bg-destructive/90"
+                      aria-label={t('common.delete', lang)}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addImageUrl}
+              disabled={imageUrls.length >= 20}
+            >
               <PlusCircle className="h-3 w-3 mr-1" />
               {t('addListing.addImage', lang)}
+              {imageUrls.length > 0 && ` (${imageUrls.length})`}
             </Button>
           </CardContent>
         </Card>

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { ReviewsSection } from '@/components/shared/ReviewsSection';
+import { ImageLightbox } from '@/components/shared/ImageLightbox';
 import type { Listing } from '@/types';
 
 const MapView = dynamic(() => import('@/components/shared/MapView'), {
@@ -54,6 +55,7 @@ export function ListingDetailPage({
   const [currentImage, setCurrentImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [reviewStats, setReviewStats] = useState({ average: 0, count: 0 });
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     if (initialListing) {
@@ -172,7 +174,7 @@ export function ListingDetailPage({
 
       <div className="mx-auto max-w-6xl px-0 md:px-6 lg:px-8">
         {/* Mobile image carousel */}
-        <div className="relative h-72 w-full overflow-hidden md:hidden">
+        <div className="relative h-72 w-full overflow-hidden md:hidden cursor-pointer" onClick={() => setLightboxOpen(true)}>
           {images.length > 0 ? (
             <img
               src={images[currentImage]}
@@ -208,7 +210,7 @@ export function ListingDetailPage({
         {/* Desktop image gallery */}
         {images.length > 0 ? (
           <div className="hidden h-[420px] w-full gap-2 py-6 md:grid md:grid-cols-2 md:grid-rows-2">
-            <div className="relative col-span-1 row-span-2 overflow-hidden rounded-l-2xl bg-muted">
+            <div className="relative col-span-1 row-span-2 overflow-hidden rounded-l-2xl bg-muted cursor-pointer" onClick={() => setLightboxOpen(true)}>
               <img
                 src={images[0]}
                 alt={listing.title}
@@ -216,12 +218,12 @@ export function ListingDetailPage({
               />
             </div>
             {images[1] && (
-              <div className="relative overflow-hidden bg-muted">
+              <div className="relative overflow-hidden bg-muted cursor-pointer" onClick={() => { setCurrentImage(1); setLightboxOpen(true); }}>
                 <img src={images[1]} alt="" className="h-full w-full object-cover" />
               </div>
             )}
             {images[2] && (
-              <div className="relative overflow-hidden rounded-tr-2xl bg-muted">
+              <div className="relative overflow-hidden rounded-tr-2xl bg-muted cursor-pointer" onClick={() => { setCurrentImage(2); setLightboxOpen(true); }}>
                 <img src={images[2]} alt="" className="h-full w-full object-cover" />
               </div>
             )}
@@ -432,6 +434,14 @@ export function ListingDetailPage({
           </div>
         </div>
       </div>
+
+      <ImageLightbox
+        images={images}
+        current={currentImage}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onChange={setCurrentImage}
+      />
     </div>
   );
 }
