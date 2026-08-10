@@ -131,9 +131,9 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
   if (booking.paymentStatus === 'paid' || (booking.payment && booking.payment.status === 'paid')) {
     return (
       <div className="flex-1 container mx-auto px-4 py-6 max-w-lg">
-        <Card className="bg-emerald-50 border-emerald-200 text-center p-8">
-          <h1 className="text-xl font-bold text-emerald-800 mb-2">{t('payment.paid', lang)}</h1>
-          <p className="text-sm text-emerald-700">{t('payment.paidMessage', lang)}</p>
+        <Card className="bg-primary/5 border-primary/20 text-center p-8">
+          <h1 className="text-xl font-bold text-primary mb-2">{t('payment.paid', lang)}</h1>
+          <p className="text-sm text-primary">{t('payment.paidMessage', lang)}</p>
           <Button className="mt-6" onClick={() => router.push('/profile')}>
             {t('common.back', lang)}
           </Button>
@@ -144,13 +144,13 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
 
   return (
     <div className="flex-1 container mx-auto px-4 md:px-6 py-6 max-w-lg">
-      <h1 className="text-xl md:text-2xl font-bold mb-6">{t('payment.title', lang)}</h1>
+      <h1 className="font-display text-xl md:text-2xl font-bold mb-6">{t('payment.title', lang)}</h1>
 
       <Card className="mb-6">
         <CardContent className="p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-14 h-14 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
-              <MapPin className="h-6 w-6 text-emerald-700" />
+            <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <MapPin className="h-6 w-6 text-primary" />
             </div>
             <div>
               <h3 className="font-medium text-sm">{booking.listing.title}</h3>
@@ -162,7 +162,7 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
           </div>
           <div className="flex justify-between text-sm pt-3 border-t">
             <span className="text-muted-foreground">{t('payment.amount', lang)}</span>
-            <span className="font-bold text-emerald-700 text-lg">{amount.toLocaleString()} {t('common.fcfa', lang)}</span>
+            <span className="font-bold text-primary text-lg">{amount.toLocaleString()} {t('common.fcfa', lang)}</span>
           </div>
         </CardContent>
       </Card>
@@ -180,11 +180,11 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
                   className={cn(
                     'flex items-center gap-2 p-3 rounded-xl border text-left text-sm transition',
                     method === m.id
-                      ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500'
-                      : 'border-border bg-white hover:bg-muted'
+                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                      : 'border-border bg-card hover:bg-muted'
                   )}
                 >
-                  <Wallet className={cn('h-4 w-4', method === m.id ? 'text-emerald-600' : 'text-muted-foreground')} />
+                  <Wallet className={cn('h-4 w-4', method === m.id ? 'text-primary' : 'text-muted-foreground')} />
                   {m.label}
                 </button>
               ))}
@@ -213,10 +213,10 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
         </form>
       ) : (
         <form onSubmit={handleVerify} className="space-y-5">
-          <Card className="bg-emerald-50 border-emerald-200">
-            <CardContent className="p-4 text-sm text-emerald-800">
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-4 text-sm text-primary">
               <p>{t('payment.codeSent', lang)} {phone}.</p>
-              <p className="mt-1 text-xs text-emerald-600">{t('payment.demoCode', lang)}</p>
+              <p className="mt-1 text-xs text-primary">{t('payment.demoCode', lang)}</p>
             </CardContent>
           </Card>
 

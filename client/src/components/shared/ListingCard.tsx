@@ -66,7 +66,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
       onClick={handleClick}
       className="group cursor-pointer"
     >
-      <div className="relative aspect-[20/19] w-full overflow-hidden rounded-xl bg-slate-100">
+      <div className="relative aspect-[20/19] w-full overflow-hidden rounded-xl bg-muted">
         {image && !imageError ? (
           <img
             src={image}
@@ -75,9 +75,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-slate-200">
+          <div className="flex h-full w-full items-center justify-center bg-muted">
             <svg
-              className="h-10 w-10 text-slate-400"
+              className="h-10 w-10 text-muted-foreground/60"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -90,59 +90,59 @@ export function ListingCard({ listing }: { listing: Listing }) {
         )}
 
         {listing.landlord?.verified && (
-          <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-slate-900 shadow-sm">
+          <span className="absolute left-3 top-3 rounded-full bg-card/90 px-2 py-1 text-[10px] font-semibold text-foreground shadow-sm">
             Vérifié
           </span>
         )}
 
         <button
           onClick={toggleFavorite}
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm transition hover:bg-white"
+          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 shadow-sm transition hover:bg-white"
           aria-label="Favori"
         >
           <Heart
             className={cn(
               'h-4 w-4 transition-colors',
-              isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-700'
+              isFavorite ? 'fill-destructive text-destructive' : 'text-foreground'
             )}
           />
         </button>
 
         {!!listing.averageRating && listing.averageRating > 0 && (
-          <div className="absolute right-3 top-12 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 shadow-sm">
+          <div className="absolute right-3 top-12 flex items-center gap-1 rounded-full bg-card/90 px-2 py-1 shadow-sm">
             <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-            <span className="text-[10px] font-semibold text-slate-900">{listing.averageRating.toFixed(1)}</span>
+            <span className="text-[10px] font-semibold text-foreground">{listing.averageRating.toFixed(1)}</span>
           </div>
         )}
       </div>
 
       <div className="mt-3 space-y-1">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-1 text-sm font-semibold text-slate-900">
+          <h3 className="font-display line-clamp-1 text-sm font-semibold text-foreground">
             {listing.title}
           </h3>
           {listing.averageRating && listing.averageRating > 0 && (
-            <div className="flex shrink-0 items-center gap-1 text-xs text-slate-900">
+            <div className="flex shrink-0 items-center gap-1 text-xs text-foreground">
               <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
               <span>{listing.averageRating.toFixed(1)}</span>
             </div>
           )}
         </div>
 
-        <p className="flex items-center gap-1 text-sm text-slate-500 line-clamp-1">
+        <p className="flex items-center gap-1 text-sm text-muted-foreground line-clamp-1">
           <MapPin className="h-3 w-3 shrink-0" />
           <span>
             {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
           </span>
         </p>
 
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted-foreground">
           {label}
         </p>
 
-        <p className="text-sm font-medium text-slate-900">
+        <p className="text-sm font-medium text-foreground">
           {listing.price.toLocaleString()} FCFA
-          <span className="font-normal text-slate-500"> / mois</span>
+          <span className="font-normal text-muted-foreground"> / mois</span>
         </p>
       </div>
     </div>

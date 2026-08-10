@@ -93,19 +93,19 @@ export function BookingFormPage({ listingId }: { listingId?: string }) {
 
   return (
     <div className="flex-1 container mx-auto px-4 md:px-6 py-6 max-w-lg">
-      <h1 className="text-xl md:text-2xl font-bold mb-6">{t('booking.title', lang)}</h1>
+      <h1 className="font-display text-xl md:text-2xl font-bold mb-6">{t('booking.title', lang)}</h1>
 
       <Card className="mb-6">
         <CardContent className="p-4 flex items-center gap-3">
-          <div className="w-14 h-14 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
-            <MapPin className="h-6 w-6 text-emerald-700" />
+          <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <MapPin className="h-6 w-6 text-primary" />
           </div>
           <div>
             <h3 className="font-medium text-sm">{listing.title}</h3>
             <p className="text-xs text-muted-foreground">
               {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
             </p>
-            <p className="text-sm font-semibold text-emerald-700 mt-0.5">
+            <p className="text-sm font-semibold text-primary mt-0.5">
               {listing.price.toLocaleString()} {t('common.fcfa', lang)}{priceLabel}
             </p>
           </div>
@@ -163,7 +163,7 @@ export function BookingFormPage({ listingId }: { listingId?: string }) {
 
 function CostSummary({ days, total, lang }: { days: number; total: number; lang: Lang }) {
   return (
-    <Card className="bg-emerald-50 border-emerald-200">
+    <Card className="bg-primary/5 border-primary/20">
       <CardContent className="p-4">
         <div className="flex justify-between text-sm mb-2">
           <span className="text-muted-foreground">
@@ -171,11 +171,11 @@ function CostSummary({ days, total, lang }: { days: number; total: number; lang:
           </span>
           <span>{total.toLocaleString()} {t('common.fcfa', lang)}</span>
         </div>
-        <div className="flex justify-between font-semibold text-base pt-2 border-t border-emerald-200">
+        <div className="flex justify-between font-semibold text-base pt-2 border-t border-primary/20">
           <span>{t('booking.total', lang)}</span>
-          <span className="text-emerald-700">{total.toLocaleString()} {t('common.fcfa', lang)}</span>
+          <span className="text-primary">{total.toLocaleString()} {t('common.fcfa', lang)}</span>
         </div>
-        <p className="text-[10px] text-emerald-600 mt-2">
+        <p className="text-[10px] text-primary mt-2">
           {t('booking.paymentNote', lang)}
         </p>
       </CardContent>

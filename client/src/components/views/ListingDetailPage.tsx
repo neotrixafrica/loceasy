@@ -26,8 +26,8 @@ import type { Listing } from '@/types';
 const MapView = dynamic(() => import('@/components/shared/MapView'), {
   ssr: false,
   loading: () => (
-    <div className="flex h-48 w-full items-center justify-center rounded-2xl bg-slate-50">
-      <p className="text-sm text-slate-500">Chargement de la carte...</p>
+    <div className="flex h-48 w-full items-center justify-center rounded-2xl bg-muted">
+      <p className="text-sm text-muted-foreground">Chargement de la carte...</p>
     </div>
   ),
 });
@@ -87,7 +87,7 @@ export function ListingDetailPage({
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <p className="text-slate-500">Chargement...</p>
+        <p className="text-muted-foreground">Chargement...</p>
       </div>
     );
   }
@@ -95,7 +95,7 @@ export function ListingDetailPage({
   if (!listing) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <p className="text-slate-500">Logement introuvable.</p>
+        <p className="text-muted-foreground">Logement introuvable.</p>
       </div>
     );
   }
@@ -153,19 +153,19 @@ export function ListingDetailPage({
   const prevImage = () => setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
 
   return (
-    <div className="flex-1 bg-white pb-20 md:pb-0">
+    <div className="flex-1 bg-card pb-20 md:pb-0">
       {/* Mobile top bar */}
-      <div className="sticky top-20 z-30 flex items-center justify-between border-b bg-white px-4 py-2 md:hidden">
-        <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-slate-700">
+      <div className="sticky top-20 z-30 flex items-center justify-between border-b bg-card px-4 py-2 md:hidden">
+        <button onClick={() => router.back()} className="flex items-center gap-1 text-sm text-foreground">
           <ChevronLeft className="h-5 w-5" />
           Retour
         </button>
         <div className="flex items-center gap-2">
-          <button onClick={handleShare} className="rounded-full p-2 hover:bg-slate-100">
-            <Share2 className="h-5 w-5 text-slate-700" />
+          <button onClick={handleShare} className="rounded-full p-2 hover:bg-muted">
+            <Share2 className="h-5 w-5 text-foreground" />
           </button>
-          <button onClick={toggleFavorite} className="rounded-full p-2 hover:bg-slate-100">
-            <Heart className={cn('h-5 w-5', isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-700')} />
+          <button onClick={toggleFavorite} className="rounded-full p-2 hover:bg-muted">
+            <Heart className={cn('h-5 w-5', isFavorite ? 'fill-destructive text-destructive' : 'text-foreground')} />
           </button>
         </div>
       </div>
@@ -180,24 +180,24 @@ export function ListingDetailPage({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-slate-100">
-              <Home className="h-12 w-12 text-slate-300" />
+            <div className="flex h-full w-full items-center justify-center bg-muted">
+              <Home className="h-12 w-12 text-muted-foreground/60" />
             </div>
           )}
           {images.length > 1 && (
             <>
-              <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow">
-                <ChevronLeft className="h-5 w-5 text-slate-800" />
+              <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-card/80 p-2 shadow">
+                <ChevronLeft className="h-5 w-5 text-foreground" />
               </button>
-              <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow">
-                <ChevronRight className="h-5 w-5 text-slate-800" />
+              <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-card/80 p-2 shadow">
+                <ChevronRight className="h-5 w-5 text-foreground" />
               </button>
               <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
                 {images.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setCurrentImage(i)}
-                    className={cn('h-2 w-2 rounded-full transition', i === currentImage ? 'bg-white' : 'bg-white/60')}
+                    className={cn('h-2 w-2 rounded-full transition', i === currentImage ? 'bg-card' : 'bg-card/60')}
                   />
                 ))}
               </div>
@@ -208,7 +208,7 @@ export function ListingDetailPage({
         {/* Desktop image gallery */}
         {images.length > 0 ? (
           <div className="hidden h-[420px] w-full gap-2 py-6 md:grid md:grid-cols-2 md:grid-rows-2">
-            <div className="relative col-span-1 row-span-2 overflow-hidden rounded-l-2xl bg-slate-100">
+            <div className="relative col-span-1 row-span-2 overflow-hidden rounded-l-2xl bg-muted">
               <img
                 src={images[0]}
                 alt={listing.title}
@@ -216,19 +216,19 @@ export function ListingDetailPage({
               />
             </div>
             {images[1] && (
-              <div className="relative overflow-hidden bg-slate-100">
+              <div className="relative overflow-hidden bg-muted">
                 <img src={images[1]} alt="" className="h-full w-full object-cover" />
               </div>
             )}
             {images[2] && (
-              <div className="relative overflow-hidden rounded-tr-2xl bg-slate-100">
+              <div className="relative overflow-hidden rounded-tr-2xl bg-muted">
                 <img src={images[2]} alt="" className="h-full w-full object-cover" />
               </div>
             )}
           </div>
         ) : (
-          <div className="hidden h-[420px] w-full items-center justify-center rounded-2xl bg-slate-100 md:flex">
-            <Home className="h-16 w-16 text-slate-300" />
+          <div className="hidden h-[420px] w-full items-center justify-center rounded-2xl bg-muted md:flex">
+            <Home className="h-16 w-16 text-muted-foreground/60" />
           </div>
         )}
 
@@ -238,19 +238,19 @@ export function ListingDetailPage({
             <div className="flex-1">
               {/* Title / location */}
               <div className="mb-4">
-                <h1 className="text-2xl font-semibold text-slate-900 md:text-3xl">{listing.title}</h1>
-                <p className="mt-1 flex items-center gap-1 text-sm text-slate-600">
+                <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">{listing.title}</h1>
+                <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4" />
                   {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
                   {listing.address && ` — ${listing.address}`}
                 </p>
                 <div className="mt-2 flex items-center gap-1 text-sm">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                  <span className="font-medium text-slate-900">
+                  <Star className="h-4 w-4 fill-accent text-accent" />
+                  <span className="font-medium text-foreground">
                     {reviewStats.average > 0 ? reviewStats.average.toFixed(1) : '—'}
                   </span>
-                  <span className="text-slate-500">· {reviewStats.count} avis</span>
-                  <span className="text-slate-500">· {typeLabels[listing.type] || listing.type}</span>
+                  <span className="text-muted-foreground">· {reviewStats.count} avis</span>
+                  <span className="text-muted-foreground">· {typeLabels[listing.type] || listing.type}</span>
                 </div>
               </div>
 
@@ -258,43 +258,43 @@ export function ListingDetailPage({
               <div className="mb-6 hidden items-center gap-3 md:flex">
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  className="flex items-center gap-2 rounded-lg border border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
                 >
                   <Share2 className="h-4 w-4" />
                   Partager
                 </button>
                 <button
                   onClick={toggleFavorite}
-                  className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  className="flex items-center gap-2 rounded-lg border border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
                 >
-                  <Heart className={cn('h-4 w-4', isFavorite ? 'fill-red-500 text-red-500' : '')} />
+                  <Heart className={cn('h-4 w-4', isFavorite ? 'fill-destructive text-destructive' : '')} />
                   Favoris
                 </button>
               </div>
 
               {/* Key details */}
-              <div className="mb-6 grid grid-cols-3 gap-3 border-y border-slate-100 py-5">
+              <div className="mb-6 grid grid-cols-3 gap-3 border-y border py-5">
                 <div className="text-center">
-                  <BedDouble className="mx-auto mb-1 h-5 w-5 text-emerald-600" />
-                  <p className="text-xs text-slate-500">Pièces</p>
-                  <p className="font-semibold text-slate-900">{listing.rooms}</p>
+                  <BedDouble className="mx-auto mb-1 h-5 w-5 text-primary" />
+                  <p className="text-xs text-muted-foreground">Pièces</p>
+                  <p className="font-semibold text-foreground">{listing.rooms}</p>
                 </div>
                 <div className="text-center">
-                  <Maximize className="mx-auto mb-1 h-5 w-5 text-emerald-600" />
-                  <p className="text-xs text-slate-500">Superficie</p>
-                  <p className="font-semibold text-slate-900">{listing.area ? `${listing.area} m²` : '-'}</p>
+                  <Maximize className="mx-auto mb-1 h-5 w-5 text-primary" />
+                  <p className="text-xs text-muted-foreground">Superficie</p>
+                  <p className="font-semibold text-foreground">{listing.area ? `${listing.area} m²` : '-'}</p>
                 </div>
                 <div className="text-center">
-                  <Home className="mx-auto mb-1 h-5 w-5 text-emerald-600" />
-                  <p className="text-xs text-slate-500">Type</p>
-                  <p className="font-semibold text-slate-900">{typeLabels[listing.type] || listing.type}</p>
+                  <Home className="mx-auto mb-1 h-5 w-5 text-primary" />
+                  <p className="text-xs text-muted-foreground">Type</p>
+                  <p className="font-semibold text-foreground">{typeLabels[listing.type] || listing.type}</p>
                 </div>
               </div>
 
               {/* Description */}
               <div className="mb-6">
-                <h2 className="mb-2 text-lg font-semibold text-slate-900">Description</h2>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+                <h2 className="font-display mb-2 text-lg font-bold text-foreground">Description</h2>
+                <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
                   {listing.description}
                 </p>
               </div>
@@ -302,12 +302,12 @@ export function ListingDetailPage({
               {/* Amenities */}
               {listing.amenities.length > 0 && (
                 <div className="mb-6">
-                  <h2 className="mb-3 text-lg font-semibold text-slate-900">Équipements</h2>
+                  <h2 className="font-display mb-3 text-lg font-bold text-foreground">Équipements</h2>
                   <div className="flex flex-wrap gap-2">
                     {listing.amenities.map((amenity) => (
                       <span
                         key={amenity}
-                        className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-700"
+                        className="rounded-full border border px-3 py-1.5 text-xs text-foreground"
                       >
                         {amenity}
                       </span>
@@ -319,8 +319,8 @@ export function ListingDetailPage({
               {/* Rules */}
               {listing.rules && (
                 <div className="mb-6">
-                  <h2 className="mb-2 text-lg font-semibold text-slate-900">Règles et conditions</h2>
-                  <p className="whitespace-pre-line rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
+                  <h2 className="font-display mb-2 text-lg font-bold text-foreground">Règles et conditions</h2>
+                  <p className="whitespace-pre-line rounded-xl bg-muted p-4 text-sm leading-relaxed text-muted-foreground">
                     {listing.rules}
                   </p>
                 </div>
@@ -328,8 +328,8 @@ export function ListingDetailPage({
 
               {/* Host */}
               {listing.landlord && (
-              <div className="mb-6 border-y border-slate-100 py-5">
-                <h2 className="mb-3 text-lg font-semibold text-slate-900">Hôte</h2>
+              <div className="mb-6 border-y border py-5">
+                <h2 className="font-display mb-3 text-lg font-bold text-foreground">Hôte</h2>
                 <div className="flex items-center gap-3">
                   {listing.landlord.avatar ? (
                     <img
@@ -338,17 +338,17 @@ export function ListingDetailPage({
                       className="h-14 w-14 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-                      <User className="h-7 w-7 text-slate-400" />
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                      <User className="h-7 w-7 text-muted-foreground" />
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-slate-900">{listing.landlord.name}</p>
+                    <p className="font-medium text-foreground">{listing.landlord.name}</p>
                     {listing.landlord.city && (
-                      <p className="text-sm text-slate-500">{listing.landlord.city}</p>
+                      <p className="text-sm text-muted-foreground">{listing.landlord.city}</p>
                     )}
                     {listing.landlord.verified && (
-                      <p className="text-xs text-emerald-700">Identité vérifiée</p>
+                      <p className="text-xs text-primary">Identité vérifiée</p>
                     )}
                   </div>
                 </div>
@@ -361,7 +361,7 @@ export function ListingDetailPage({
               {/* Map */}
               {listing.latitude && listing.longitude && (
                 <div className="mb-6">
-                  <h2 className="mb-3 text-lg font-semibold text-slate-900">Localisation</h2>
+                  <h2 className="font-display mb-3 text-lg font-bold text-foreground">Localisation</h2>
                   <MapView
                     latitude={listing.latitude}
                     longitude={listing.longitude}
@@ -369,7 +369,7 @@ export function ListingDetailPage({
                     className="h-64 w-full rounded-2xl"
                     single
                   />
-                  <p className="mt-2 flex items-center gap-1 text-xs text-slate-500">
+                  <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="h-3 w-3" />
                     {listing.quartier ? `${listing.quartier}, ` : ''}{listing.city}
                   </p>
@@ -379,29 +379,29 @@ export function ListingDetailPage({
 
             {/* Desktop price card */}
             <div className="hidden w-full max-w-sm md:block md:sticky md:top-40">
-              <div className="rounded-2xl border border-slate-100 p-5 shadow-sm">
+              <div className="rounded-2xl border border p-5 shadow-sm">
                 <div className="mb-4">
-                  <span className="text-2xl font-bold text-slate-900">{listing.price.toLocaleString()} FCFA</span>
-                  <span className="text-slate-500"> / mois</span>
+                  <span className="text-2xl font-bold text-foreground">{listing.price.toLocaleString()} FCFA</span>
+                  <span className="text-muted-foreground"> / mois</span>
                 </div>
                 <div className="space-y-2">
                   <button
                     onClick={handleBooking}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 text-sm font-medium text-white transition hover:bg-emerald-700"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-medium text-white transition hover:bg-primary"
                   >
                     <CalendarDays className="h-4 w-4" />
                     Réserver
                   </button>
                   <button
                     onClick={handleContact}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-900 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-900 py-3 text-sm font-medium text-foreground transition hover:bg-muted"
                   >
                     <MessageCircle className="h-4 w-4" />
                     Contacter
                   </button>
                 </div>
                 <div className="mt-4 border-t pt-4">
-                  <p className="text-sm text-slate-500">Prix mensuel hors charges éventuelles.</p>
+                  <p className="text-sm text-muted-foreground">Prix mensuel hors charges éventuelles.</p>
                 </div>
               </div>
             </div>
@@ -410,22 +410,22 @@ export function ListingDetailPage({
       </div>
 
       {/* Mobile action bar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 border-t bg-white p-4 shadow-sm md:hidden">
+      <div className="fixed bottom-16 left-0 right-0 z-40 border-t bg-card p-4 shadow-sm md:hidden">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xl font-bold text-slate-900">{listing.price.toLocaleString()} FCFA</p>
-            <p className="text-xs text-slate-500">/ mois</p>
+            <p className="text-xl font-bold text-foreground">{listing.price.toLocaleString()} FCFA</p>
+            <p className="text-xs text-muted-foreground">/ mois</p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={handleContact}
-              className="rounded-lg border border-slate-900 px-4 py-2.5 text-sm font-medium text-slate-900"
+              className="rounded-lg border border-slate-900 px-4 py-2.5 text-sm font-medium text-foreground"
             >
               Contacter
             </button>
             <button
               onClick={handleBooking}
-              className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white"
+              className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white"
             >
               Réserver
             </button>
