@@ -9,6 +9,7 @@ export async function POST() {
     sameSite: 'lax',
     maxAge: 0,
     path: '/',
+    domain: process.env.NODE_ENV === 'development' ? 'localhost' : undefined,
   });
   return NextResponse.json({ success: true });
 }
