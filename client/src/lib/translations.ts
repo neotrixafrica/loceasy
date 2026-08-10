@@ -130,6 +130,10 @@ const translations: Record<Lang, Record<string, string>> = {
     'booking.success': 'Demande de réservation envoyée !',
     'booking.requests': 'Demandes de réservation',
     'booking.myBookings': 'Mes réservations',
+    'booking.noListing': 'Aucun logement sélectionné.',
+    'booking.nights': 'nuits',
+    'booking.total': 'Total estimé',
+    'booking.paymentNote': 'Paiement par Mobile Money (Moov Money, T-Money).',
 
     // Booking status
     'status.pending': 'En attente',
@@ -205,6 +209,8 @@ const translations: Record<Lang, Record<string, string>> = {
     'common.all': 'Tous',
     'common.fcfa': 'FCFA',
     'common.perMonth': '/mois',
+    'common.nights': 'nuits',
+    'common.night': 'nuit',
 
     // Payment
     'payment.title': 'Paiement Mobile Money',
@@ -393,6 +399,10 @@ const translations: Record<Lang, Record<string, string>> = {
     'booking.success': 'Booking request sent!',
     'booking.requests': 'Booking requests',
     'booking.myBookings': 'My bookings',
+    'booking.noListing': 'No listing selected.',
+    'booking.nights': 'nights',
+    'booking.total': 'Estimated total',
+    'booking.paymentNote': 'Payment via Mobile Money (Moov Money, T-Money).',
 
     // Booking status
     'status.pending': 'Pending',
@@ -468,6 +478,8 @@ const translations: Record<Lang, Record<string, string>> = {
     'common.all': 'All',
     'common.fcfa': 'FCFA',
     'common.perMonth': '/month',
+    'common.nights': 'nights',
+    'common.night': 'night',
 
     // Payment
     'payment.title': 'Mobile Money Payment',
