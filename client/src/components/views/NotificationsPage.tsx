@@ -90,10 +90,10 @@ export function NotificationsPage() {
   const getIconBg = (type: string, read: boolean) => {
     if (read) return 'bg-muted text-muted-foreground';
     switch (type) {
-      case 'booking': return 'bg-amber-100 text-amber-700';
-      case 'message': return 'bg-emerald-100 text-emerald-700';
-      case 'payment': return 'bg-blue-100 text-blue-700';
-      default: return 'bg-slate-100 text-slate-700';
+      case 'booking': return 'bg-amber-100 text-amber-900';
+      case 'message': return 'bg-primary/10 text-primary';
+      case 'payment': return 'bg-blue-100 text-blue-900';
+      default: return 'bg-muted text-foreground';
     }
   };
 
@@ -105,8 +105,8 @@ export function NotificationsPage() {
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-              <Bell className="h-5 w-5 text-emerald-700" />
+            <h1 className="font-display text-xl md:text-2xl font-bold flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
               {t('notifications.title', lang)}
             </h1>
             {unreadCount > 0 && (
@@ -147,7 +147,7 @@ export function NotificationsPage() {
                 'w-full text-left p-4 rounded-xl border transition-colors',
                 notification.read
                   ? 'bg-card hover:bg-muted/50'
-                  : 'bg-emerald-50/50 hover:bg-emerald-50 border-emerald-200'
+                  : 'bg-primary/5 hover:bg-primary/10 border-primary/20'
               )}
               onClick={() => handleClick(notification)}
             >
@@ -163,7 +163,7 @@ export function NotificationsPage() {
                     <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                       <span className="text-[10px] text-muted-foreground">{formatTime(notification.createdAt)}</span>
                       {!notification.read && (
-                        <div className="w-2 h-2 rounded-full bg-emerald-600" />
+                        <div className="w-2 h-2 rounded-full bg-primary" />
                       )}
                     </div>
                   </div>
