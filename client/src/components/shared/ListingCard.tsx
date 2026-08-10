@@ -6,24 +6,7 @@ import { apiFetch } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { Heart, Star, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface Landlord {
-  id: string;
-  name: string;
-  verified?: boolean;
-}
-
-export interface Listing {
-  id: string;
-  title: string;
-  price: number;
-  type: string;
-  city: string;
-  quartier: string | null;
-  images: string[];
-  averageRating?: number;
-  landlord?: Landlord;
-}
+import type { Listing } from '@/types';
 
 const typeLabels: Record<string, string> = {
   chambre: 'Chambre',

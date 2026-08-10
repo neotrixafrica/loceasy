@@ -1,8 +1,10 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { User, Lang, AppNotification } from '@/types';
 
-export type Lang = 'fr' | 'en' | 'ee' | 'kab';
+export type { Lang } from '@/types';
 
-interface Filters {
+export interface Filters {
   city: string;
   quartier: string;
   type: string;
@@ -12,17 +14,8 @@ interface Filters {
 }
 
 interface AppState {
-  currentUser: {
-    id: string;
-    email: string;
-    name: string;
-    phone: string | null;
-    role: string;
-    avatar: string | null;
-    verified: boolean;
-    city: string | null;
-  } | null;
-  login: (user: AppState['currentUser']) => void;
+  currentUser: User | null;
+  login: (user: User) => void;
   logout: () => void;
 
   lang: Lang;
@@ -39,16 +32,6 @@ interface AppState {
   clearNotifications: () => void;
 }
 
-export interface AppNotification {
-  id: string;
-  type: 'booking' | 'message' | 'system';
-  title: string;
-  body: string;
-  read: boolean;
-  createdAt: string;
-  link?: string;
-}
-
 const defaultFilters: Filters = {
   city: '',
   quartier: '',
@@ -58,43 +41,51 @@ const defaultFilters: Filters = {
   search: '',
 };
 
-export const useAppStore = create<AppState>((set) => ({
-  currentUser: null,
-  login: (user) => set({ currentUser: user }),
-  logout: () => set({ currentUser: null }),
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      currentUser: null,
+      login: (user) => set({ currentUser: user }),
+      logout: () => set({ currentUser: null }),
 
-  lang: 'fr',
-  setLang: (lang) => set({ lang }),
+      lang: 'fr',
+      setLang: (lang) => set({ lang }),
 
-  filters: { ...defaultFilters },
-  setFilters: (newFilters) =>
-    set((state) => ({
-      filters: { ...state.filters, ...newFilters },
-    })),
-  resetFilters: () => set({ filters: { ...defaultFilters } }),
+      filters: { ...defaultFilters },
+      setFilters: (newFilters) =>
+        set((state) => ({
+          filters: { ...state.filters, ...newFilters },
+        })),
+      resetFilters: () => set({ filters: { ...defaultFilters } }),
 
-  notifications: [],
-  addNotification: (notification) =>
-    set((state) => ({
-      notifications: [
-        {
-          ...notification,
-          id: crypto.randomUUID?.() || Date.now().toString(),
-          createdAt: new Date().toISOString(),
-          read: false,
-        },
-        ...state.notifications,
-      ].slice(0, 50),
-    })),
-  markNotificationRead: (id) =>
-    set((state) => ({
-      notifications: state.notifications.map((n) =>
-        n.id === id ? { ...n, read: true } : n
-      ),
-    })),
-  markAllNotificationsRead: () =>
-    set((state) => ({
-      notifications: state.notifications.map((n) => ({ ...n, read: true })),
-    })),
-  clearNotifications: () => set({ notifications: [] }),
-}));
+      notifications: [],
+      addNotification: (notification) =>
+        set((state) => ({
+          notifications: [
+            {
+              ...notification,
+              id: crypto.randomUUID?.() || Date.now().toString(),
+              createdAt: new Date().toISOString(),
+              read: false,
+            },
+            ...state.notifications,
+          ].slice(0, 50),
+        })),
+      markNotificationRead: (id) =>
+        set((state) => ({
+          notifications: state.notifications.map((n) =>
+            n.id === id ? { ...n, read: true } : n
+          ),
+        })),
+      markAllNotificationsRead: () =>
+        set((state) => ({
+          notifications: state.notifications.map((n) => ({ ...n, read: true })),
+        })),
+      clearNotifications: () => set({ notifications: [] }),
+    }),
+    {
+      name: 'loceasy-store',
+      partialize: (state) => ({ lang: state.lang }),
+    }
+  )
+);

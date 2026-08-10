@@ -2,24 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
-import { apiFetch } from '@/lib/api';
+import { apiGet } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { ListingCard } from '@/components/shared/ListingCard';
+import { t } from '@/lib/translations';
 import { Search, BedDouble, Building, Building2, Home, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { Listing } from '@/types';
 
-interface Listing {
-  id: string;
-  title: string;
-  price: number;
-  type: string;
-  city: string;
-  quartier: string | null;
-  images: string[];
-  landlord?: { id: string; name: string; verified?: boolean };
-}
-
-const categories = [
+const CATEGORIES = [
   { key: 'chambre', label: 'Chambres', icon: BedDouble },
   { key: 'studio', label: 'Studios', icon: Building },
   { key: 'appartement', label: 'Appartements', icon: Building2 },
@@ -27,21 +18,23 @@ const categories = [
   { key: 'bureau', label: 'Bureaux', icon: Briefcase },
 ];
 
-const heroImage = 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1400&q=80';
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1400&q=80';
 
 export function HomePage() {
-  const { currentUser, setFilters } = useAppStore();
+  const { lang, currentUser, setFilters } = useAppStore();
   const router = useRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    apiFetch('/api/listings?city=')
-      .then((res) => res.json())
-      .then((data: Listing[]) => setListings(data.slice(0, 8)))
-      .catch(() => setListings([]))
-      .finally(() => setLoading(false));
+    let mounted = true;
+    setLoading(true);
+    apiGet<Listing[]>('/api/listings?city=')
+      .then((data) => mounted && setListings(data.slice(0, 8)))
+      .catch(() => mounted && setListings([]))
+      .finally(() => mounted && setLoading(false));
+    return () => { mounted = false; };
   }, []);
 
   const handleSearch = () => {
@@ -59,7 +52,7 @@ export function HomePage() {
       {/* Hero */}
       <section className="relative h-[420px] w-full overflow-hidden md:h-[520px]">
         <img
-          src={heroImage}
+          src={HERO_IMAGE}
           alt="Intérieur"
           className="absolute inset-0 h-full w-full object-cover"
           onError={(e) => {
@@ -70,10 +63,10 @@ export function HomePage() {
 
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
           <h1 className="max-w-2xl text-3xl font-semibold text-white md:text-5xl">
-            Trouvez votre prochain logement
+            {t('hero.title', lang)}
           </h1>
           <p className="mt-3 max-w-lg text-base text-white/90 md:text-lg">
-            Chambres, studios et appartements partout au Togo.
+            {t('hero.subtitle', lang)}
           </p>
 
           {/* Floating search */}
@@ -86,7 +79,7 @@ export function HomePage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="Ville, quartier..."
+                  placeholder={t('hero.search.placeholder', lang)}
                   className="h-11 w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
                 />
               </div>
@@ -94,7 +87,7 @@ export function HomePage() {
                 onClick={handleSearch}
                 className="flex h-11 items-center gap-2 rounded-full bg-emerald-600 px-5 text-sm font-medium text-white transition hover:bg-emerald-700"
               >
-                Rechercher
+                {t('hero.search.button', lang)}
               </button>
             </div>
           </div>
@@ -105,7 +98,7 @@ export function HomePage() {
       <section className="border-b border-slate-100 bg-white py-6">
         <div className="mx-auto max-w-7xl px-4">
           <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-2">
-            {categories.map((cat) => {
+            {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               return (
                 <button
@@ -128,21 +121,13 @@ export function HomePage() {
       {/* Popular listings */}
       <section className="mx-auto max-w-7xl px-4 py-10 md:py-14">
         <h2 className="mb-6 text-xl font-semibold text-slate-900 md:text-2xl">
-          Logements populaires
+          {t('home.popular', lang)}
         </h2>
 
         {loading ? (
-          <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="space-y-3">
-                <div className="aspect-[20/19] animate-pulse rounded-xl bg-slate-100" />
-                <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
-                <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
-              </div>
-            ))}
-          </div>
+          <ListingGridSkeleton />
         ) : listings.length === 0 ? (
-          <p className="text-sm text-slate-500">Aucun logement disponible.</p>
+          <p className="text-sm text-slate-500">{t('home.empty', lang)}</p>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             {listings.map((listing) => (
@@ -157,10 +142,10 @@ export function HomePage() {
         <section className="bg-slate-50 py-10 md:py-14">
           <div className="mx-auto max-w-7xl px-4 text-center">
             <h2 className="text-xl font-semibold text-slate-900 md:text-2xl">
-              Propriétaire ?
+              {t('home.cta.title', lang)}
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
-              Publiez gratuitement vos annonces et trouvez rapidement des locataires.
+              {t('home.cta.desc', lang)}
             </p>
             <button
               onClick={() => {
@@ -169,11 +154,25 @@ export function HomePage() {
               }}
               className="mt-5 rounded-lg border border-slate-900 bg-white px-6 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
             >
-              {currentUser?.role === 'landlord' ? 'Ajouter une annonce' : 'Créer un compte'}
+              {currentUser?.role === 'landlord' ? t('home.cta.add', lang) : t('home.cta.signup', lang)}
             </button>
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+function ListingGridSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="space-y-3">
+          <div className="aspect-[20/19] animate-pulse rounded-xl bg-slate-100" />
+          <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
+          <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
+        </div>
+      ))}
     </div>
   );
 }

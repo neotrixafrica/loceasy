@@ -5,7 +5,7 @@ import { useAppStore } from '@/lib/store';
 import { apiFetch } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { ListingCard } from '@/components/shared/ListingCard';
-import type { Listing } from '@/components/shared/ListingCard';
+import type { Listing } from '@/types';
 import { Heart } from 'lucide-react';
 
 export function FavoritesPage() {

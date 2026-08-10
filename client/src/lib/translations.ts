@@ -1,6 +1,7 @@
-export type Lang = 'fr' | 'en' | 'ee' | 'kab';
+import type { Lang } from '@/types';
+export type { Lang } from '@/types';
 
-const translations: Record<string, Record<string, string>> = {
+const translations: Record<Lang, Record<string, string>> = {
   fr: {
     // App
     'app.name': 'LocEasy Togo',
@@ -43,6 +44,14 @@ const translations: Record<string, Record<string, string>> = {
     'how.step2.desc': 'Demandez une visite et réservez en ligne. Paiement sécurisé par Mobile Money.',
     'how.step3.title': 'Emménagez',
     'how.step3.desc': 'Prenez possession de votre nouveau logement et installez-vous confortablement.',
+
+    // Home
+    'home.popular': 'Logements populaires',
+    'home.empty': 'Aucun logement disponible.',
+    'home.cta.title': 'Propriétaire ?',
+    'home.cta.desc': 'Publiez gratuitement vos annonces et trouvez rapidement des locataires.',
+    'home.cta.add': 'Ajouter une annonce',
+    'home.cta.signup': 'Créer un compte',
 
     // Search
     'search.title': 'Recherche de logements',
@@ -293,6 +302,14 @@ const translations: Record<string, Record<string, string>> = {
     'how.step2.desc': 'Request a visit and book online. Secure payment via Mobile Money.',
     'how.step3.title': 'Move in',
     'how.step3.desc': 'Take possession of your new home and settle in comfortably.',
+
+    // Home
+    'home.popular': 'Popular listings',
+    'home.empty': 'No listings available.',
+    'home.cta.title': 'Are you a landlord?',
+    'home.cta.desc': 'Publish your listings for free and find tenants quickly.',
+    'home.cta.add': 'Add a listing',
+    'home.cta.signup': 'Create an account',
 
     // Search
     'search.title': 'Housing search',
