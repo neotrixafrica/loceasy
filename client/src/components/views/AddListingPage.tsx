@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { PlusCircle, X } from 'lucide-react';
+import { ImageUploader } from '@/components/shared/ImageUploader';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
@@ -234,16 +235,15 @@ export function AddListingPage() {
           <CardContent className="p-5 space-y-3">
             <label className="text-sm font-medium block">{t('addListing.images', lang)}</label>
             {imageUrls.map((url, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <Input
-                  value={url}
-                  onChange={(e) => updateImageUrl(index, e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                />
+              <div key={index} className="space-y-2">
+                <ImageUploader value={url} onChange={(value) => updateImageUrl(index, value)} disabled={loading} />
                 {imageUrls.length > 1 && (
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeImageUrl(index)}>
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <div className="text-right">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => removeImageUrl(index)}>
+                      <X className="h-3 w-3 mr-1" />
+                      {t('common.delete', lang)}
+                    </Button>
+                  </div>
                 )}
               </div>
             ))}

@@ -65,6 +65,19 @@ export async function apiDelete<R = unknown>(input: string | URL, init?: Omit<Ap
   return res.json();
 }
 
+export async function apiUpload(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  });
+  if (!res.ok) throw new ApiError('Upload failed', res.status, await res.json().catch(() => null));
+  const data = await res.json() as { url: string };
+  return data.url;
+}
+
 // Typed feature helpers
 export const api = {
   auth: {
