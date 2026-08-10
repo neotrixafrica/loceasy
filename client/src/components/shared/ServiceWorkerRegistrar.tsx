@@ -22,8 +22,17 @@ export function ServiceWorkerRegistrar() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Register Service Worker
-    if ('serviceWorker' in navigator) {
+    // In dev, unregister any existing service worker to prevent stale chunks
+    if (process.env.NODE_ENV !== 'production' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister().then(() => console.log('SW unregistered'));
+        }
+      });
+    }
+
+    // Register Service Worker only in production
+    if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
