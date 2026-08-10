@@ -14,8 +14,8 @@ import type { Listing, Lang } from '@/types';
 const MapView = dynamic(() => import('@/components/shared/MapView'), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full w-full items-center justify-center bg-slate-50">
-      <p className="text-sm text-slate-500">Chargement de la carte...</p>
+    <div className="flex h-full w-full items-center justify-center bg-muted">
+      <p className="text-sm text-muted-foreground">Chargement de la carte...</p>
     </div>
   ),
 });
@@ -108,9 +108,9 @@ export function SearchPage() {
   };
 
   return (
-    <div className="flex-1 bg-white">
+    <div className="flex-1 bg-card">
       {/* Sticky filter bar */}
-      <div className="sticky top-20 z-30 border-b bg-white py-3 shadow-sm">
+      <div className="sticky top-20 z-30 border-b bg-card py-3 shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto px-4 py-1 scrollbar-hide">
           <SearchInput value={filters.search} onChange={(v) => updateFilter('search', v)} lang={lang} />
           <Select
@@ -146,7 +146,7 @@ export function SearchPage() {
           {activeFiltersCount > 0 && (
             <button
               onClick={resetFilters}
-              className="flex h-10 shrink-0 items-center gap-1 rounded-full border border-slate-200 px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+              className="flex h-10 shrink-0 items-center gap-1 rounded-full border border px-3 text-sm font-medium text-muted-foreground transition hover:bg-muted"
             >
               <X className="h-4 w-4" />
               {t('search.reset', lang)}
@@ -158,8 +158,8 @@ export function SearchPage() {
             className={cn(
               'hidden md:flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition',
               showMap
-                ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                ? 'border-primary bg-primary/5 text-primary'
+                : 'border text-foreground hover:bg-muted'
             )}
           >
             {showMap ? <LayoutGrid className="h-4 w-4" /> : <Map className="h-4 w-4" />}
@@ -171,7 +171,7 @@ export function SearchPage() {
       <div className="mx-auto max-w-7xl px-4 py-5">
         {/* Header + sort */}
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-lg font-semibold text-slate-900 md:text-xl">
+          <h1 className="font-display text-lg font-bold text-foreground md:text-xl">
             {loading ? t('search.loading', lang) : `${listings.length} ${t('search.results', lang)}`}
           </h1>
           <div className="flex items-center gap-2">
@@ -186,8 +186,8 @@ export function SearchPage() {
                 className={cn(
                   'rounded-full border px-3 py-1.5 text-xs font-medium transition',
                   sortBy === s.key
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'border-primary bg-primary/5 text-primary'
+                    : 'border text-muted-foreground hover:bg-muted'
                 )}
               >
                 {s.label}
@@ -203,9 +203,9 @@ export function SearchPage() {
               <ListingGridSkeleton gridCols={gridCols} />
             ) : sortedListings.length === 0 ? (
               <div className="py-16 text-center">
-                <Search className="mx-auto mb-3 h-10 w-10 text-slate-300" />
-                <h3 className="font-medium text-slate-900">{t('search.noResults', lang)}</h3>
-                <p className="text-sm text-slate-500">{t('search.noResults.desc', lang)}</p>
+                <Search className="mx-auto mb-3 h-10 w-10 text-muted-foreground/60" />
+                <h3 className="font-medium text-foreground">{t('search.noResults', lang)}</h3>
+                <p className="text-sm text-muted-foreground">{t('search.noResults.desc', lang)}</p>
               </div>
             ) : (
               <div className={gridCols}>
@@ -217,7 +217,7 @@ export function SearchPage() {
           </div>
 
           {showMap && (
-            <div className="sticky top-40 hidden h-[calc(100vh-11rem)] w-full rounded-2xl border border-slate-100 bg-white shadow-sm md:block md:w-1/2">
+            <div className="sticky top-40 hidden h-[calc(100vh-11rem)] w-full rounded-2xl border border bg-card shadow-sm md:block md:w-1/2">
               {mapMarkers.length > 0 ? (
                 <MapView
                   latitude={0}
@@ -226,8 +226,8 @@ export function SearchPage() {
                   className="h-full w-full rounded-2xl"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-2xl bg-slate-50">
-                  <p className="text-sm text-slate-500">{t('search.noMarkers', lang)}</p>
+                <div className="flex h-full w-full items-center justify-center rounded-2xl bg-muted">
+                  <p className="text-sm text-muted-foreground">{t('search.noMarkers', lang)}</p>
                 </div>
               )}
             </div>
@@ -239,7 +239,7 @@ export function SearchPage() {
       <div className="fixed bottom-24 left-1/2 z-30 -translate-x-1/2 md:hidden">
         <button
           onClick={() => setShowMap(!showMap)}
-          className="flex items-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white shadow-lg transition hover:bg-slate-800"
+          className="flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-white shadow-lg transition hover:bg-foreground/80"
         >
           {showMap ? <LayoutGrid className="h-4 w-4" /> : <Map className="h-4 w-4" />}
           {showMap ? t('search.list', lang) : t('search.map', lang)}
@@ -248,14 +248,14 @@ export function SearchPage() {
 
       {/* Mobile map bottom sheet */}
       {showMap && (
-        <div className="fixed inset-x-0 bottom-0 z-40 h-[70vh] rounded-t-2xl bg-white shadow-2xl md:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 h-[70vh] rounded-t-2xl bg-card shadow-2xl md:hidden">
           <div className="flex items-center justify-between border-b px-4 py-3">
-            <span className="font-medium text-slate-900">{t('search.map', lang)}</span>
+            <span className="font-medium text-foreground">{t('search.map', lang)}</span>
             <button
               onClick={() => setShowMap(false)}
-              className="rounded-full p-2 hover:bg-slate-100"
+              className="rounded-full p-2 hover:bg-muted"
             >
-              <X className="h-5 w-5 text-slate-600" />
+              <X className="h-5 w-5 text-muted-foreground" />
             </button>
           </div>
           <div className="h-[calc(70vh-3.5rem)] w-full p-4">
@@ -267,8 +267,8 @@ export function SearchPage() {
                 className="h-full w-full rounded-2xl"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center rounded-2xl bg-slate-50">
-                <p className="text-sm text-slate-500">{t('search.noMarkers', lang)}</p>
+              <div className="flex h-full w-full items-center justify-center rounded-2xl bg-muted">
+                <p className="text-sm text-muted-foreground">{t('search.noMarkers', lang)}</p>
               </div>
             )}
           </div>
@@ -281,13 +281,13 @@ export function SearchPage() {
 function SearchInput({ value, onChange, lang }: { value: string; onChange: (v: string) => void; lang: Lang }) {
   return (
     <div className="relative min-w-[180px] flex-1">
-      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={t('search.keyword', lang)}
-        className="h-10 w-full rounded-full border border-slate-200 bg-white pl-9 pr-4 text-sm text-slate-900 outline-none focus:border-emerald-600"
+        className="h-10 w-full rounded-full border border bg-card pl-9 pr-4 text-sm text-foreground outline-none focus:border-primary"
       />
     </div>
   );
@@ -310,13 +310,13 @@ function Select({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="h-10 w-full cursor-pointer appearance-none rounded-full border border-slate-200 bg-white pl-4 pr-9 text-sm text-slate-900 outline-none focus:border-emerald-600 disabled:bg-slate-100 disabled:text-slate-400"
+        className="h-10 w-full cursor-pointer appearance-none rounded-full border border bg-card pl-4 pr-9 text-sm text-foreground outline-none focus:border-primary disabled:bg-muted disabled:text-muted-foreground/60"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
     </div>
   );
 }
@@ -337,7 +337,7 @@ function PriceInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="h-10 w-28 rounded-full border border-slate-200 px-4 text-sm text-slate-900 outline-none focus:border-emerald-600"
+      className="h-10 w-28 rounded-full border border px-4 text-sm text-foreground outline-none focus:border-primary"
     />
   );
 }
@@ -347,9 +347,9 @@ function ListingGridSkeleton({ gridCols }: { gridCols: string }) {
     <div className={gridCols}>
       {[...Array(6)].map((_, i) => (
         <div key={i} className="space-y-3">
-          <div className="aspect-[20/19] animate-pulse rounded-xl bg-slate-100" />
-          <div className="h-4 w-3/4 rounded bg-slate-100" />
-          <div className="h-3 w-1/2 rounded bg-slate-100" />
+          <div className="aspect-[20/19] animate-pulse rounded-xl bg-muted" />
+          <div className="h-4 w-3/4 rounded bg-muted" />
+          <div className="h-3 w-1/2 rounded bg-muted" />
         </div>
       ))}
     </div>
