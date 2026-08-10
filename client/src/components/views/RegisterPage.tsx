@@ -7,6 +7,7 @@ import { t } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { Logo } from '@/components/shared/Logo';
 import {
   Select,
   SelectContent,
@@ -45,23 +46,18 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4 py-8">
+    <div className="flex-1 flex items-center justify-center px-4 py-8 bg-muted/30">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-emerald-700 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <line x1="19" y1="8" x2="19" y2="14" />
-              <line x1="22" y1="11" x2="16" y2="11" />
-            </svg>
+          <div className="flex justify-center mb-4">
+            <Logo showText={false} className="scale-150" />
           </div>
-          <h1 className="text-2xl font-bold">{t('auth.register.title', lang)}</h1>
+          <h1 className="font-display text-2xl font-bold text-foreground">{t('auth.register.title', lang)}</h1>
         </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <Card className="border shadow-xl">
+          <CardContent className="pt-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">{t('auth.name', lang)}</label>
                 <Input
@@ -126,7 +122,7 @@ export function RegisterPage() {
               <p className="text-sm text-muted-foreground">
                 {t('auth.hasAccount', lang)}{' '}
                 <button
-                  className="text-emerald-700 font-medium hover:underline"
+                  className="text-primary font-medium hover:underline"
                   onClick={() => router.push('/login')}
                 >
                   {t('nav.login', lang)}

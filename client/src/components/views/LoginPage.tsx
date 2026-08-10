@@ -7,9 +7,10 @@ import { t } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { Logo } from '@/components/shared/Logo';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import type { User } from '@/types';
+import type { User, Lang } from '@/types';
 
 export function LoginPage() {
   const { lang, login } = useAppStore();
@@ -35,13 +36,13 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4 py-8">
+    <div className="flex-1 flex items-center justify-center px-4 py-8 bg-muted/30">
       <div className="w-full max-w-md">
-        <AuthHeader />
+        <AuthHeader lang={lang} />
 
-        <Card>
-          <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <Card className="border shadow-xl">
+          <CardContent className="pt-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">{t('auth.email', lang)}</label>
                 <Input
@@ -73,7 +74,7 @@ export function LoginPage() {
               <p className="text-sm text-muted-foreground">
                 {t('auth.noAccount', lang)}{' '}
                 <button
-                  className="text-emerald-700 font-medium hover:underline"
+                  className="text-primary font-medium hover:underline"
                   onClick={() => router.push('/register')}
                 >
                   {t('nav.register', lang)}
@@ -93,16 +94,14 @@ export function LoginPage() {
   );
 }
 
-function AuthHeader() {
+function AuthHeader({ lang }: { lang: Lang }) {
   return (
     <div className="text-center mb-8">
-      <div className="w-12 h-12 bg-emerald-700 rounded-xl flex items-center justify-center mx-auto mb-3">
-        <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
+      <div className="flex justify-center mb-4">
+        <Logo showText={false} className="scale-150" />
       </div>
-      <h1 className="text-2xl font-bold">LocEasy</h1>
+      <h1 className="font-display text-2xl font-bold text-foreground">{t('nav.login', lang)}</h1>
+      <p className="text-sm text-muted-foreground mt-1">LocEasy</p>
     </div>
   );
 }

@@ -1,19 +1,7 @@
 import type { Metadata } from "next";
-import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegistrar } from "@/components/shared/ServiceWorkerRegistrar";
-
-const manrope = Manrope({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["500", "700", "800"],
-});
-
-const inter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "LocEasy — Logements au Togo, simples et sûrs",
@@ -50,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body
-        className={`${manrope.variable} ${inter.variable} antialiased bg-background text-foreground font-sans`}
+        className="antialiased bg-background text-foreground font-sans"
       >
         {children}
         <ServiceWorkerRegistrar />
