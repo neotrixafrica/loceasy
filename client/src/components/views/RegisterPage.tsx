@@ -73,6 +73,7 @@ export function RegisterPage() {
               <div>
                 <label className="text-sm font-medium mb-1.5 block">{t('auth.name', lang)}</label>
                 <Input
+                  autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Kofi Mensah"
@@ -83,6 +84,7 @@ export function RegisterPage() {
                 <label className="text-sm font-medium mb-1.5 block">{t('auth.email', lang)}</label>
                 <Input
                   type="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="email@example.tg"
@@ -93,6 +95,7 @@ export function RegisterPage() {
                 <label className="text-sm font-medium mb-1.5 block">{t('auth.phone', lang)}</label>
                 <Input
                   type="tel"
+                  autoComplete="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+228 90 12 34 56"
@@ -102,6 +105,7 @@ export function RegisterPage() {
                 <label className="text-sm font-medium mb-1.5 block">{t('auth.password', lang)}</label>
                 <Input
                   type="password"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"

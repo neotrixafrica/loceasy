@@ -62,6 +62,7 @@ export function LoginPage() {
                 <label className="text-sm font-medium mb-1.5 block">{t('auth.email', lang)}</label>
                 <Input
                   type="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="email@example.tg"
@@ -72,6 +73,7 @@ export function LoginPage() {
                 <label className="text-sm font-medium mb-1.5 block">{t('auth.password', lang)}</label>
                 <Input
                   type="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
