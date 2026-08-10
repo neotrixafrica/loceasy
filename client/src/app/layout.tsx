@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/layout/Footer";
-import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { ServiceWorkerRegistrar } from "@/components/shared/ServiceWorkerRegistrar";
 
 export const metadata: Metadata = {
@@ -42,12 +41,10 @@ export default function RootLayout({
       <body
         className="antialiased bg-background text-foreground font-sans min-h-screen flex flex-col"
       >
-        <ThemeProvider>
-          {children}
-          <Footer />
-          <ServiceWorkerRegistrar />
-          <Toaster position="top-right" richColors />
-        </ThemeProvider>
+        {children}
+        <Footer />
+        <ServiceWorkerRegistrar />
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );
