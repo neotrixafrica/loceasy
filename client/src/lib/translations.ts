@@ -75,11 +75,16 @@ const translations: Record<Lang, Record<string, string>> = {
     'search.sort.recent': 'Plus récent',
     'search.keyword': 'Mot-clé',
     'search.map': 'Carte',
+    'search.list': 'Liste',
+    'search.loading': 'Recherche...',
+    'search.noMarkers': 'Aucune position pour ces résultats.',
 
     // Listing types
     'type.chambre': 'Chambre',
     'type.studio': 'Studio',
     'type.appartement': 'Appartement',
+    'type.maison': 'Maison',
+    'type.bureau': 'Bureau',
 
     // Listing detail
     'detail.back': 'Retour',
@@ -333,11 +338,16 @@ const translations: Record<Lang, Record<string, string>> = {
     'search.sort.recent': 'Most recent',
     'search.keyword': 'Keyword',
     'search.map': 'Map',
+    'search.list': 'List',
+    'search.loading': 'Searching...',
+    'search.noMarkers': 'No locations for these results.',
 
     // Listing types
     'type.chambre': 'Room',
     'type.studio': 'Studio',
     'type.appartement': 'Apartment',
+    'type.maison': 'House',
+    'type.bureau': 'Office',
 
     // Listing detail
     'detail.back': 'Back',
