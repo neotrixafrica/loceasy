@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/lib/store';
+import { api } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,38 +16,29 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import type { User } from '@/types';
 
 export function RegisterPage() {
-  const { lang } = useAppStore();
+  const { lang, login } = useAppStore();
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [role, setRole] = useState('tenant');
+  const [role, setRole] = useState<'tenant' | 'landlord'>('tenant');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ name, email, password, phone, role }),
-      });
-      if (res.ok) {
-        const user = await res.json();
-        useAppStore.getState().login(user);
-        toast.success(t('auth.register.success', lang));
-        router.push('/');
-      } else {
-        const data = await res.json();
-        toast.error(data.error || t('common.error', lang));
-      }
-    } catch {
-      toast.error(t('common.error', lang));
+      const user = await api.auth.register({ name, email, password, phone, role }) as User;
+      login(user);
+      toast.success(t('auth.register.success', lang));
+      router.push('/');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('common.error', lang);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -115,7 +107,7 @@ export function RegisterPage() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">{t('auth.role', lang)}</label>
-                <Select value={role} onValueChange={setRole}>
+                <Select value={role} onValueChange={(value) => setRole(value as 'tenant' | 'landlord')}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
