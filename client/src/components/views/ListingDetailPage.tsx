@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
-import { apiFetch } from '@/lib/api';
+import { apiGet, apiPost, apiDelete } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { ReviewsSection } from '@/components/shared/ReviewsSection';
+import type { Listing } from '@/types';
 
 const MapView = dynamic(() => import('@/components/shared/MapView'), {
   ssr: false,
@@ -30,33 +31,6 @@ const MapView = dynamic(() => import('@/components/shared/MapView'), {
     </div>
   ),
 });
-
-interface Listing {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  type: string;
-  city: string;
-  quartier: string | null;
-  address: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  rooms: number;
-  area: number | null;
-  amenities: string[];
-  images: string[];
-  rules: string | null;
-  landlord: {
-    id: string;
-    name: string;
-    avatar: string | null;
-    phone: string | null;
-    city: string | null;
-    email: string;
-    verified?: boolean;
-  };
-}
 
 const typeLabels: Record<string, string> = {
   chambre: 'Chambre',
@@ -89,8 +63,7 @@ export function ListingDetailPage({
     }
     if (!listingId) return;
     setLoading(true);
-    apiFetch(`/api/listings/${listingId}`)
-      .then((res) => (res.ok ? res.json() : null))
+    apiGet<Listing>(`/api/listings/${listingId}`)
       .then((data) => setListing(data))
       .catch(() => setListing(undefined))
       .finally(() => setLoading(false));
@@ -98,22 +71,16 @@ export function ListingDetailPage({
 
   useEffect(() => {
     if (currentUser && listing) {
-      apiFetch(`/api/favorites?userId=${currentUser.id}`)
-        .then((res) => res.json())
-        .then((favs: Listing[]) => setIsFavorite(favs.some((f) => f.id === listing.id)))
+      apiGet<Listing[]>(`/api/favorites?userId=${currentUser.id}`)
+        .then((favs) => setIsFavorite(favs.some((f) => f.id === listing.id)))
         .catch(() => {});
     }
   }, [currentUser, listing]);
 
   useEffect(() => {
     if (!listing) return;
-    apiFetch(`/api/reviews?listingId=${listing.id}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) {
-          setReviewStats({ average: data.average, count: data.count });
-        }
-      })
+    apiGet<{ average: number; count: number }>(`/api/reviews?listingId=${listing.id}`)
+      .then((data) => setReviewStats({ average: data.average, count: data.count }))
       .catch(() => {});
   }, [listing]);
 
@@ -136,20 +103,16 @@ export function ListingDetailPage({
   const images = listing.images || [];
 
   const toggleFavorite = async () => {
-    if (!currentUser) {
+    if (!currentUser || !listing) {
       router.push('/login');
       return;
     }
     try {
       if (isFavorite) {
-        await apiFetch(`/api/favorites?userId=${currentUser.id}&listingId=${listing.id}`, { method: 'DELETE' });
+        await apiDelete(`/api/favorites?userId=${currentUser.id}&listingId=${listing.id}`);
         setIsFavorite(false);
       } else {
-        await apiFetch('/api/favorites', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ listingId: listing.id }),
-        });
+        await apiPost('/api/favorites', { listingId: listing.id });
         setIsFavorite(true);
       }
     } catch (err) {

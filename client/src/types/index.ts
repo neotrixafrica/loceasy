@@ -22,6 +22,7 @@ export interface User {
 export interface Landlord {
   id: string;
   name: string;
+  email?: string | null;
   phone?: string | null;
   city?: string | null;
   verified?: boolean;

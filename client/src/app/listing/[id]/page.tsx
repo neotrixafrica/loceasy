@@ -4,37 +4,13 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Header, BottomNav } from '@/components/layout/Header';
 import { ListingDetailPage } from '@/components/views/ListingDetailPage';
-import { apiFetch } from '@/lib/api';
+import { apiGet } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
-
-type Listing = {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  type: string;
-  city: string;
-  quartier: string | null;
-  address: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  rooms: number;
-  area: number | null;
-  amenities: string[];
-  images: string[];
-  rules: string | null;
-  landlord: {
-    id: string;
-    name: string;
-    avatar: string | null;
-    phone: string | null;
-    city: string | null;
-    email: string;
-  };
-};
+import type { Listing } from '@/types';
 
 export default function ListingDetail() {
-  const { id } = useParams() as { id: string };
+  const params = useParams() as { id: string };
+  const { id } = params;
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,12 +19,13 @@ export default function ListingDetail() {
       setLoading(false);
       return;
     }
-
-    apiFetch(`/api/listings/${id}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setListing(data as Listing | null))
-      .catch(() => setListing(null))
-      .finally(() => setLoading(false));
+    let mounted = true;
+    setLoading(true);
+    apiGet<Listing>(`/api/listings/${id}`)
+      .then((data) => mounted && setListing(data))
+      .catch(() => mounted && setListing(null))
+      .finally(() => mounted && setLoading(false));
+    return () => { mounted = false; };
   }, [id]);
 
   if (loading) {
