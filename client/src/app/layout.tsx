@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { Footer } from "@/components/layout/Footer";
+import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { ServiceWorkerRegistrar } from "@/components/shared/ServiceWorkerRegistrar";
 
 export const metadata: Metadata = {
@@ -38,11 +40,14 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body
-        className="antialiased bg-background text-foreground font-sans"
+        className="antialiased bg-background text-foreground font-sans min-h-screen flex flex-col"
       >
-        {children}
-        <ServiceWorkerRegistrar />
-        <Toaster position="top-right" richColors />
+        <ThemeProvider>
+          {children}
+          <Footer />
+          <ServiceWorkerRegistrar />
+          <Toaster position="top-right" richColors />
+        </ThemeProvider>
       </body>
     </html>
   );

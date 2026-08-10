@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Menu, Search, Globe, User, Bell, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/shared/Logo';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import type { Lang } from '@/types';
 
 const LANGS: Record<Lang, string> = { fr: 'Français', en: 'English', ee: 'Ewe', kab: 'Kabiyé' };
@@ -106,6 +107,8 @@ export function Header() {
               </div>
             )}
           </div>
+
+          <ThemeToggle />
 
           {currentUser && (
             <button
