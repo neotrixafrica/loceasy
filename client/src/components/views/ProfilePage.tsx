@@ -13,10 +13,10 @@ import { useRouter } from 'next/navigation';
 import type { Booking, User, Lang } from '@/types';
 
 const statusClass: Record<string, string> = {
-  pending: 'bg-amber-100 text-amber-800',
-  accepted: 'bg-emerald-100 text-emerald-800',
-  rejected: 'bg-red-100 text-red-800',
-  cancelled: 'bg-gray-100 text-gray-800',
+  pending: 'bg-amber-100 text-amber-900',
+  accepted: 'bg-primary/10 text-primary',
+  rejected: 'bg-destructive/10 text-destructive',
+  cancelled: 'bg-muted text-muted-foreground',
 };
 
 export function ProfilePage() {
@@ -67,8 +67,8 @@ export function ProfilePage() {
       <ProfileHeader user={currentUser} lang={lang} />
 
       {!currentUser.verified && (
-        <div className="mb-6 p-4 border border-slate-200 rounded-xl bg-slate-50">
-          <p className="text-sm text-slate-600 mb-3">{t('profile.verify.desc', lang)}</p>
+        <div className="mb-6 p-4 border border rounded-xl bg-muted">
+          <p className="text-sm text-muted-foreground mb-3">{t('profile.verify.desc', lang)}</p>
           <Button onClick={handleVerify} className="w-full">
             {t('profile.verify.action', lang)}
           </Button>
@@ -98,13 +98,13 @@ function ProfileHeader({ user, lang }: { user: { name: string; email: string; ph
     <Card className="mb-6">
       <CardContent className="p-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
-            <span className="text-xl font-bold text-emerald-700">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-xl font-bold text-primary">
               {user.name.charAt(0)}
             </span>
           </div>
           <div className="flex-1">
-            <h1 className="text-lg font-bold">{user.name}</h1>
+            <h1 className="font-display text-lg font-bold">{user.name}</h1>
             <Badge variant="secondary" className="mt-1">
               {t(`profile.role.${user.role}`, lang)}
             </Badge>
@@ -129,7 +129,7 @@ function ProfileHeader({ user, lang }: { user: { name: string; email: string; ph
             </div>
           )}
           {user.verified && (
-            <Badge className="bg-emerald-100 text-emerald-800 w-fit">
+            <Badge className="bg-primary/10 text-primary w-fit">
               {t('profile.verified', lang)}
             </Badge>
           )}
@@ -201,7 +201,7 @@ function BookingList({
 }) {
   return (
     <div className="mb-6">
-      <h2 className="text-lg font-semibold mb-3">{t('booking.myBookings', lang)}</h2>
+      <h2 className="font-display text-lg font-semibold mb-3">{t('booking.myBookings', lang)}</h2>
       <div className="space-y-3">
         {bookings.map((booking) => (
           <Card key={booking.id}>
@@ -213,7 +213,7 @@ function BookingList({
                       {t(`status.${booking.status}`, lang)}
                     </Badge>
                   </div>
-                  <h3 className="font-medium text-sm">{booking.listing?.title}</h3>
+                  <h3 className="font-medium text-sm text-foreground">{booking.listing?.title}</h3>
                   <p className="text-xs text-muted-foreground">
                     {booking.listing?.city}{booking.listing?.quartier ? `, ${booking.listing.quartier}` : ''}
                   </p>
@@ -231,7 +231,7 @@ function BookingList({
                     </Button>
                   )}
                 </div>
-                <span className="font-semibold text-sm text-emerald-700">
+                <span className="font-semibold text-sm text-primary">
                   {booking.listing?.price?.toLocaleString()} {t('common.fcfa', lang)}
                 </span>
               </div>
