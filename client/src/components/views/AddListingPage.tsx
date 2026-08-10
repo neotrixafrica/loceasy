@@ -39,6 +39,8 @@ export function AddListingPage() {
   useEffect(() => {
     if (!currentUser) {
       router.push('/login');
+    } else if (currentUser.role !== 'landlord') {
+      router.push('/register');
     }
   }, [currentUser, router]);
 

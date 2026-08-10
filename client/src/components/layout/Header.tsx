@@ -75,7 +75,7 @@ export function Header() {
 
         <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={() => currentUser ? router.push('/add-listing') : router.push('/login')}
+            onClick={() => currentUser?.role === 'landlord' ? router.push('/add-listing') : router.push('/register')}
             className="hidden md:flex items-center gap-1.5 text-sm font-semibold bg-accent text-accent-foreground hover:bg-accent/90 px-4 py-2.5 rounded-full transition-colors"
           >
             <Plus className="w-4 h-4" />
