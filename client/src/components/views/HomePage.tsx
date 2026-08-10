@@ -18,7 +18,7 @@ const CATEGORIES = [
   { key: 'bureau', label: 'Bureaux', icon: Briefcase },
 ];
 
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1400&q=80';
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1400&q=80';
 
 export function HomePage() {
   const { lang, currentUser, setFilters } = useAppStore();
@@ -48,44 +48,44 @@ export function HomePage() {
   };
 
   return (
-    <div className="flex-1 bg-white">
+    <div className="flex-1 bg-background">
       {/* Hero */}
-      <section className="relative h-[420px] w-full overflow-hidden md:h-[520px]">
+      <section className="relative h-[460px] w-full overflow-hidden md:h-[580px]">
         <img
           src={HERO_IMAGE}
-          alt="Intérieur"
+          alt="Intérieur chaleureux"
           className="absolute inset-0 h-full w-full object-cover"
           onError={(e) => {
             (e.target as HTMLImageElement).style.display = 'none';
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 via-slate-900/30 to-slate-900/50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-foreground/70 via-foreground/30 to-foreground/70" />
 
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-          <h1 className="max-w-2xl text-3xl font-semibold text-white md:text-5xl">
+          <h1 className="font-display max-w-2xl text-4xl font-extrabold text-white md:text-6xl leading-tight">
             {t('hero.title', lang)}
           </h1>
-          <p className="mt-3 max-w-lg text-base text-white/90 md:text-lg">
+          <p className="mt-4 max-w-lg text-base text-white/90 md:text-lg font-medium">
             {t('hero.subtitle', lang)}
           </p>
 
           {/* Floating search */}
-          <div className="mt-8 w-full max-w-2xl rounded-full bg-white p-1.5 shadow-xl">
+          <div className="mt-8 w-full max-w-2xl rounded-full bg-white/95 p-1.5 shadow-2xl backdrop-blur-sm">
             <div className="flex items-center gap-2 pr-2">
               <div className="flex flex-1 items-center gap-2 pl-4">
-                <Search className="h-4 w-4 text-slate-400" />
+                <Search className="h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder={t('hero.search.placeholder', lang)}
-                  className="h-11 w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                  className="h-12 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
                 />
               </div>
               <button
                 onClick={handleSearch}
-                className="flex h-11 items-center gap-2 rounded-full bg-emerald-600 px-5 text-sm font-medium text-white transition hover:bg-emerald-700"
+                className="flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-sm font-bold text-primary-foreground transition hover:bg-primary/90"
               >
                 {t('hero.search.button', lang)}
               </button>
@@ -95,7 +95,7 @@ export function HomePage() {
       </section>
 
       {/* Categories */}
-      <section className="border-b border-slate-100 bg-white py-6">
+      <section className="border-b bg-card py-6">
         <div className="mx-auto max-w-7xl px-4">
           <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-2">
             {CATEGORIES.map((cat) => {
@@ -105,8 +105,8 @@ export function HomePage() {
                   key={cat.key}
                   onClick={() => handleCategory(cat.key)}
                   className={cn(
-                    'flex shrink-0 flex-col items-center gap-2 border-b-2 border-transparent pb-2 pt-1 text-xs font-medium text-slate-500 transition hover:text-slate-900',
-                    'hover:border-slate-900'
+                    'flex shrink-0 flex-col items-center gap-2 border-b-2 border-transparent pb-2 pt-1 text-xs font-medium text-muted-foreground transition hover:text-foreground',
+                    'hover:border-primary'
                   )}
                 >
                   <Icon className="h-6 w-6" />
@@ -120,7 +120,7 @@ export function HomePage() {
 
       {/* Popular listings */}
       <section className="mx-auto max-w-7xl px-4 py-10 md:py-14">
-        <h2 className="mb-6 text-xl font-semibold text-slate-900 md:text-2xl">
+        <h2 className="font-display mb-6 text-2xl font-bold text-foreground md:text-3xl">
           {t('home.popular', lang)}
         </h2>
 
@@ -139,12 +139,12 @@ export function HomePage() {
 
       {/* CTA landlord */}
       {(!currentUser || currentUser.role === 'landlord') && (
-        <section className="bg-slate-50 py-10 md:py-14">
+        <section className="bg-primary text-primary-foreground py-12 md:py-20">
           <div className="mx-auto max-w-7xl px-4 text-center">
-            <h2 className="text-xl font-semibold text-slate-900 md:text-2xl">
+            <h2 className="font-display text-2xl font-bold md:text-3xl">
               {t('home.cta.title', lang)}
             </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
+            <p className="mx-auto mt-2 max-w-md text-sm text-primary-foreground/80">
               {t('home.cta.desc', lang)}
             </p>
             <button
@@ -152,7 +152,7 @@ export function HomePage() {
                 if (currentUser?.role === 'landlord') router.push('/add-listing');
                 else router.push('/register');
               }}
-              className="mt-5 rounded-lg border border-slate-900 bg-white px-6 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-slate-100"
+              className="mt-6 rounded-full bg-accent px-8 py-3 text-sm font-bold text-accent-foreground transition hover:bg-accent/90"
             >
               {currentUser?.role === 'landlord' ? t('home.cta.add', lang) : t('home.cta.signup', lang)}
             </button>
@@ -168,9 +168,9 @@ function ListingGridSkeleton() {
     <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
       {[...Array(8)].map((_, i) => (
         <div key={i} className="space-y-3">
-          <div className="aspect-[20/19] animate-pulse rounded-xl bg-slate-100" />
-          <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
-          <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
+          <div className="aspect-[20/19] animate-pulse rounded-xl bg-muted" />
+          <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+          <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
         </div>
       ))}
     </div>
