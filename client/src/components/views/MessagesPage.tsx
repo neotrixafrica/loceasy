@@ -125,13 +125,13 @@ export function MessagesPage({ partnerId, partnerName: initialPartnerName }: { p
   }
 
   return (
-    <div className="flex-1 flex h-[calc(100vh-3.5rem)] md:h-[calc(100vh-3.5rem)]">
+    <div className="flex-1 flex h-[calc(100vh-5rem)] md:h-[calc(100vh-3.5rem)]">
       {/* Conversation list */}
       <div className={cn('w-full md:w-80 border-r flex-shrink-0', activeConversation ? 'hidden md:block' : 'block')}>
         <div className="p-4 border-b">
           <h2 className="font-display font-semibold">{t('messages.title', lang)}</h2>
         </div>
-        <div className="overflow-y-auto max-h-[calc(100vh-7rem)]">
+        <div className="overflow-y-auto max-h-[calc(100vh-8rem)] md:max-h-[calc(100vh-7rem)]">
           {conversations.length === 0 ? (
             <div className="text-center py-12 px-4">
               <MessageCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
@@ -196,7 +196,7 @@ export function MessagesPage({ partnerId, partnerName: initialPartnerName }: { p
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[calc(100vh-12rem)]">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[calc(100vh-14rem)] md:max-h-[calc(100vh-12rem)]">
               {messages.map((msg) => {
                 const isMine = msg.senderId === currentUser?.id;
                 return (
