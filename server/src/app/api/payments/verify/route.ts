@@ -40,10 +40,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Payment already processed' }, { status: 400 });
     }
 
-    // Simulation: any 4-6 digit code is accepted for demo
-    const isValidCode = /^\d{4,6}$/.test(code);
-    if (!isValidCode) {
-      return NextResponse.json({ error: 'Invalid verification code' }, { status: 400 });
+    // Payment verification
+    const isDemoMode = process.env.PAYMENT_MODE === 'demo';
+
+    if (isDemoMode) {
+      // Demo mode: any 4-6 digit code is accepted
+      const isValidCode = /^\d{4,6}$/.test(code);
+      if (!isValidCode) {
+        return NextResponse.json({ error: 'Invalid verification code' }, { status: 400 });
+      }
+    } else {
+      // Production mode: integrate with real payment provider API
+      // TODO: Call the actual payment provider API to verify the code
+      // Example for Flooz/TMoney/Wave/Orange Money
+      // const verificationResult = await verifyPaymentWithProvider(payment.transactionRef, code);
+      // if (!verificationResult.success) {
+      //   return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 });
+      // }
+      return NextResponse.json(
+        { error: 'Payment provider integration not configured. Set PAYMENT_MODE=demo for testing.' },
+        { status: 501 }
+      );
     }
 
     const [updatedPayment, updatedBooking] = await db.$transaction([

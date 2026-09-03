@@ -38,6 +38,7 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<Step>('form');
   const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -83,9 +84,10 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
         method,
         phone,
         amount,
-      }) as { payment: { id: string }; message: string };
+      }) as { payment: { id: string }; message: string; isDemoMode?: boolean };
       toast.success(data.message || t('payment.initiated', lang));
       setPaymentId(data.payment.id);
+      setIsDemoMode(data.isDemoMode || false);
       setStep('verify');
     } catch (error) {
       const msg = error instanceof Error ? error.message : t('common.error', lang);
@@ -213,10 +215,17 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
         </form>
       ) : (
         <form onSubmit={handleVerify} className="space-y-5">
+          {isDemoMode && (
+            <Card className="bg-amber-50 border-amber-200">
+              <CardContent className="p-4 text-sm text-amber-900">
+                <p className="font-medium">Mode démo activé</p>
+                <p className="mt-1 text-xs">Entrez n'importe quel code à 4-6 chiffres pour simuler le paiement.</p>
+              </CardContent>
+            </Card>
+          )}
           <Card className="bg-primary/5 border-primary/20">
             <CardContent className="p-4 text-sm text-primary">
               <p>{t('payment.codeSent', lang)} {phone}.</p>
-              <p className="mt-1 text-xs text-primary">{t('payment.demoCode', lang)}</p>
             </CardContent>
           </Card>
 

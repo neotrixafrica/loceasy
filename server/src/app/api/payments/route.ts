@@ -64,10 +64,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const isDemoMode = process.env.PAYMENT_MODE === 'demo';
+    const message = isDemoMode
+      ? `Demo mode: A payment request of ${amount} FCFA has been simulated for ${phone}. Enter any 4-6 digit code to verify.`
+      : `A payment request of ${amount} FCFA has been sent to ${phone}. Confirm with the code received.`;
+
     return NextResponse.json({
       success: true,
       payment,
-      message: `A payment request of ${amount} FCFA has been sent to ${phone}. Confirm with the code received.`,
+      message,
+      isDemoMode,
     });
   } catch (error) {
     console.error('POST /api/payments error:', error);
