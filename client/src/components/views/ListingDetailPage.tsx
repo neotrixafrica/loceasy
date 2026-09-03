@@ -140,7 +140,7 @@ export function ListingDetailPage({
       router.push('/login');
       return;
     }
-    router.push(`/messages/${listing.landlord.id}`);
+    router.push(`/messages/${listing.landlord.id}?name=${encodeURIComponent(listing.landlord.name)}`);
   };
 
   const handleBooking = () => {

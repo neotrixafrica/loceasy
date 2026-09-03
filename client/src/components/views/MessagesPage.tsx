@@ -29,7 +29,7 @@ interface ExtendedMessage extends Message {
   receiver: { id: string; name: string; avatar: string | null };
 }
 
-export function MessagesPage({ partnerId }: { partnerId?: string }) {
+export function MessagesPage({ partnerId, partnerName: initialPartnerName }: { partnerId?: string; partnerName?: string }) {
   const { lang, currentUser } = useAppStore();
   const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -37,6 +37,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
   const [newMessage, setNewMessage] = useState('');
   const [activeConversation, setActiveConversation] = useState<string | null>(partnerId || null);
   const [loading, setLoading] = useState(true);
+  const [partnerName, setPartnerName] = useState<string>(initialPartnerName || '');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,7 +59,15 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
     try {
       const data = await apiGet<Conversation[]>('/api/messages');
       setConversations(data);
-      if (!activeConversation && data.length > 0 && !partnerId) {
+
+      // If partnerId is provided, always select it
+      if (partnerId) {
+        const existingConv = data.find((c) => c.partnerId === partnerId);
+        if (existingConv) {
+          setPartnerName(existingConv.partnerName);
+        }
+        setActiveConversation(partnerId);
+      } else if (!activeConversation && data.length > 0) {
         setActiveConversation(data[0].partnerId);
       }
     } catch (error) {
@@ -101,6 +110,8 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
   };
 
   const activePartner = conversations.find((c) => c.partnerId === activeConversation);
+  // Use partnerName from state if not found in conversations (new conversation)
+  const displayPartnerName = activePartner?.partnerName || partnerName;
 
   if (!currentUser) {
     return (
@@ -166,7 +177,7 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
 
       {/* Chat area */}
       <div className={cn('flex-1 flex flex-col', !activeConversation ? 'hidden md:flex' : 'flex')}>
-        {activeConversation && activePartner ? (
+        {activeConversation ? (
           <>
             {/* Chat header */}
             <div className="p-3 border-b flex items-center gap-3">
@@ -178,9 +189,9 @@ export function MessagesPage({ partnerId }: { partnerId?: string }) {
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
-              <Avatar name={activePartner.partnerName} />
+              <Avatar name={displayPartnerName || 'User'} />
               <div>
-                <p className="font-medium text-sm">{activePartner.partnerName}</p>
+                <p className="font-medium text-sm">{displayPartnerName || 'User'}</p>
               </div>
             </div>
 
