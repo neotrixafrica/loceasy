@@ -173,6 +173,11 @@ export function BottomNav() {
   const { lang, currentUser, notifications } = useAppStore();
   const unread = notifications.filter((n) => !n.read).length;
 
+  // Hide on messages pages
+  if (pathname.startsWith('/messages')) {
+    return null;
+  }
+
   const tabs = [
     { href: '/', icon: '●', label: t('nav.home', lang) },
     { href: '/favorites', icon: '♥', label: t('nav.favorites', lang) },

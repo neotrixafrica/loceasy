@@ -2,9 +2,16 @@
 
 import { Logo } from '@/components/shared/Logo';
 import { MapPin, Mail, Phone } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export function Footer() {
+  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+
+  // Hide on messages pages
+  if (pathname.startsWith('/messages')) {
+    return null;
+  }
 
   return (
     <footer className="hidden md:block bg-primary text-primary-foreground mt-auto">
