@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import { apiFetch } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import { Heart, Star, MapPin } from 'lucide-react';
+import { Heart, Star, MapPin, Clock, Lock, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Listing } from '@/types';
 
@@ -24,6 +24,37 @@ export function ListingCard({ listing }: { listing: Listing }) {
 
   const image = listing.images?.[0];
   const label = typeLabels[listing.type] || listing.type;
+  const status = listing.status || 'available';
+
+  const getStatusBadge = () => {
+    switch (status) {
+      case 'available':
+        return null;
+      case 'viewing_in_progress':
+        return (
+          <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-amber-500 px-2 py-1 text-[10px] font-semibold text-white shadow-sm">
+            <Clock className="h-3 w-3" />
+            Visite
+          </span>
+        );
+      case 'reserved':
+        return (
+          <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-blue-500 px-2 py-1 text-[10px] font-semibold text-white shadow-sm">
+            <Lock className="h-3 w-3" />
+            Réservé
+          </span>
+        );
+      case 'rented':
+        return (
+          <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-red-500 px-2 py-1 text-[10px] font-semibold text-white shadow-sm">
+            <XCircle className="h-3 w-3" />
+            Loué
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
 
   useEffect(() => {
     if (currentUser) {
@@ -89,7 +120,8 @@ export function ListingCard({ listing }: { listing: Listing }) {
           </div>
         )}
 
-        {listing.landlord?.verified && (
+        {getStatusBadge()}
+        {listing.landlord?.verified && status === 'available' && (
           <span className="absolute left-3 top-3 rounded-full bg-card/90 px-2 py-1 text-[10px] font-semibold text-foreground shadow-sm">
             Vérifié
           </span>

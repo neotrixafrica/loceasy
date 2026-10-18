@@ -13,7 +13,9 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get('maxPrice');
     const search = searchParams.get('search') || '';
 
-    const where: Record<string, unknown> = { available: true };
+    const where: Record<string, unknown> = {
+      status: { in: ['available', 'viewing_in_progress'] },
+    };
 
     if (city) where.city = city;
     if (quartier) where.quartier = quartier;

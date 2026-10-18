@@ -7,7 +7,7 @@ import { t } from '@/lib/translations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, MapPin, CalendarDays, LogOut, Building2, MessageCircle, Heart } from 'lucide-react';
+import { Mail, Phone, MapPin, CalendarDays, LogOut, Building2, MessageCircle, Heart, ShieldCheck, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import type { Booking, User, Lang } from '@/types';
@@ -40,13 +40,7 @@ export function ProfilePage() {
   }, [currentUser, router]);
 
   const handleVerify = async () => {
-    try {
-      const user = await apiPost<User>('/api/verify', {});
-      login(user);
-      toast.success(t('profile.verify.success', lang));
-    } catch {
-      toast.error(t('profile.verify.error', lang));
-    }
+    router.push('/verification');
   };
 
   const handleLogout = async () => {
@@ -93,7 +87,7 @@ export function ProfilePage() {
   );
 }
 
-function ProfileHeader({ user, lang }: { user: { name: string; email: string; phone?: string | null; city?: string | null; verified: boolean; role: string }; lang: Lang }) {
+function ProfileHeader({ user, lang }: { user: any; lang: Lang }) {
   return (
     <Card className="mb-6">
       <CardContent className="p-6">
@@ -105,9 +99,18 @@ function ProfileHeader({ user, lang }: { user: { name: string; email: string; ph
           </div>
           <div className="flex-1">
             <h1 className="font-display text-lg font-bold">{user.name}</h1>
-            <Badge variant="secondary" className="mt-1">
-              {t(`profile.role.${user.role}`, lang)}
-            </Badge>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <Badge variant="secondary">
+                {t(`profile.role.${user.role}`, lang)}
+              </Badge>
+              {user.badge && (
+                <Badge className="bg-primary/10 text-primary">
+                  {user.badge === 'trusted_host' && 'Hôte de confiance'}
+                  {user.badge === 'super_host' && 'Super hôte'}
+                  {user.badge === 'agency_verified' && 'Agence vérifiée'}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 
@@ -120,6 +123,9 @@ function ProfileHeader({ user, lang }: { user: { name: string; email: string; ph
             <div className="flex items-center gap-2 text-sm">
               <Phone className="h-4 w-4 text-muted-foreground" />
               <span>{user.phone}</span>
+              {user.phoneVerified && (
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+              )}
             </div>
           )}
           {user.city && (
@@ -128,12 +134,38 @@ function ProfileHeader({ user, lang }: { user: { name: string; email: string; ph
               <span>{user.city}</span>
             </div>
           )}
-          {user.verified && (
-            <Badge className="bg-primary/10 text-primary w-fit">
-              {t('profile.verified', lang)}
-            </Badge>
+          {user.verificationStatus && (
+            <div className="flex items-center gap-2 text-sm">
+              {user.verificationStatus === 'verified' && (
+                <>
+                  <ShieldCheck className="h-4 w-4 text-green-600" />
+                  <span className="text-green-600">Identité vérifiée</span>
+                </>
+              )}
+              {user.verificationStatus === 'pending' && (
+                <>
+                  <Clock className="h-4 w-4 text-yellow-600" />
+                  <span className="text-yellow-600">En cours</span>
+                </>
+              )}
+              {user.verificationStatus === 'rejected' && (
+                <>
+                  <XCircle className="h-4 w-4 text-red-600" />
+                  <span className="text-red-600">Rejeté</span>
+                </>
+              )}
+            </div>
           )}
         </div>
+
+        {user.trustScore !== undefined && user.trustScore > 0 && (
+          <div className="mt-4 p-3 rounded-lg bg-muted/50">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Score de confiance</span>
+              <span className="font-bold text-primary">{user.trustScore}/100</span>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -144,7 +176,7 @@ function QuickActions({
   lang,
   router,
 }: {
-  user: { role: string };
+  user: any;
   lang: Lang;
   router: ReturnType<typeof useRouter>;
 }) {
@@ -165,6 +197,14 @@ function QuickActions({
       >
         <Heart className="h-5 w-5" />
         <span className="text-sm">{t('nav.favorites', lang)}</span>
+      </Button>
+      <Button
+        variant="outline"
+        className="h-auto py-4 flex-col gap-2"
+        onClick={() => router.push('/verification')}
+      >
+        <ShieldCheck className="h-5 w-5" />
+        <span className="text-sm">Vérification</span>
       </Button>
       {user.role === 'landlord' && (
         <>

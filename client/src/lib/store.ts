@@ -11,6 +11,12 @@ export interface Filters {
   minPrice: number;
   maxPrice: number;
   search: string;
+  minRooms: number;
+  maxRooms: number;
+  minArea: number;
+  maxArea: number;
+  amenities: string[];
+  availableOnly: boolean;
 }
 
 interface AppState {
@@ -40,6 +46,12 @@ const defaultFilters: Filters = {
   minPrice: 0,
   maxPrice: 0,
   search: '',
+  minRooms: 0,
+  maxRooms: 0,
+  minArea: 0,
+  maxArea: 0,
+  amenities: [],
+  availableOnly: false,
 };
 
 export const useAppStore = create<AppState>()(

@@ -13,10 +13,24 @@ export interface User {
   email: string;
   name: string;
   phone?: string | null;
+  phoneVerified?: boolean;
+  phoneVerifiedAt?: string | null;
   role: UserRole;
   avatar?: string | null;
   verified: boolean;
+  verificationStatus?: 'pending' | 'verified' | 'rejected';
+  verificationDoc?: string | null;
+  verificationDocType?: string | null;
+  verificationSubmittedAt?: string | null;
+  verificationReviewedAt?: string | null;
+  verificationRejectionReason?: string | null;
   city?: string | null;
+  trustScore?: number;
+  totalListings?: number;
+  totalBookings?: number;
+  responseRate?: number;
+  responseTime?: number;
+  badge?: string;
 }
 
 export interface Landlord {
@@ -45,7 +59,10 @@ export interface Listing {
   amenities: string[];
   images: string[];
   rules?: string | null;
+  status?: 'available' | 'viewing_in_progress' | 'reserved' | 'rented';
   available: boolean;
+  verified?: boolean;
+  verificationDate?: string | null;
   landlordId: string;
   landlord?: Landlord;
   averageRating?: number;

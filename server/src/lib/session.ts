@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { verifyToken } from './auth';
 import { db } from './db';
+import { publicUserSelect } from './user';
 
 export async function getCurrentUser() {
   const cookieStore = await cookies();
@@ -10,19 +11,8 @@ export async function getCurrentUser() {
   const payload = verifyToken(token);
   if (!payload) return null;
 
-  const user = await db.user.findUnique({
+  return db.user.findUnique({
     where: { id: payload.userId },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      phone: true,
-      role: true,
-      avatar: true,
-      verified: true,
-      city: true,
-    },
+    select: publicUserSelect,
   });
-
-  return user;
 }

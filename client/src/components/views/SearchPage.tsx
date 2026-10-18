@@ -3,10 +3,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAppStore } from '@/lib/store';
 import { api } from '@/lib/api';
-import { t, TOGO_CITIES, TOGO_QUARTIERS } from '@/lib/translations';
+import { t, TOGO_CITIES, TOGO_QUARTIERS, AMENITIES_LIST } from '@/lib/translations';
 import { useRouter } from 'next/navigation';
 import { ListingCard } from '@/components/shared/ListingCard';
-import { Search, Map, LayoutGrid, X, ChevronDown } from 'lucide-react';
+import { Search, Map, LayoutGrid, X, ChevronDown, SlidersHorizontal, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 import type { Listing, Lang } from '@/types';
@@ -29,6 +29,7 @@ export function SearchPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [showMap, setShowMap] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>('recent');
 
   const quartiers = useMemo(
@@ -47,7 +48,31 @@ export function SearchPage() {
         maxPrice: filters.maxPrice > 0 ? filters.maxPrice : undefined,
         search: filters.search,
       });
-      setListings(data as Listing[]);
+      let filteredData = data as Listing[];
+      
+      // Client-side filtering for advanced filters
+      if (filters.minRooms > 0) {
+        filteredData = filteredData.filter(l => l.rooms && l.rooms >= filters.minRooms);
+      }
+      if (filters.maxRooms > 0) {
+        filteredData = filteredData.filter(l => l.rooms && l.rooms <= filters.maxRooms);
+      }
+      if (filters.minArea > 0) {
+        filteredData = filteredData.filter(l => l.area && l.area >= filters.minArea);
+      }
+      if (filters.maxArea > 0) {
+        filteredData = filteredData.filter(l => l.area && l.area <= filters.maxArea);
+      }
+      if (filters.availableOnly) {
+        filteredData = filteredData.filter(l => l.status === 'available');
+      }
+      if (filters.amenities.length > 0) {
+        filteredData = filteredData.filter(l => 
+          filters.amenities.every(a => l.amenities.includes(a))
+        );
+      }
+      
+      setListings(filteredData);
     } catch (err) {
       console.error('Failed to fetch listings:', err);
       setListings([]);
@@ -90,6 +115,12 @@ export function SearchPage() {
     filters.minPrice > 0,
     filters.maxPrice > 0,
     filters.search,
+    filters.minRooms > 0,
+    filters.maxRooms > 0,
+    filters.minArea > 0,
+    filters.maxArea > 0,
+    filters.availableOnly,
+    filters.amenities.length > 0,
   ].filter(Boolean).length;
 
   const gridCols = cn(
@@ -99,11 +130,20 @@ export function SearchPage() {
       : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
   );
 
-  const updateFilter = (key: keyof typeof filters, value: string | number) => {
+  const updateFilter = (key: keyof typeof filters, value: string | number | boolean | string[]) => {
     if (key === 'city') {
       setFilters({ city: value as string, quartier: '' });
     } else {
       setFilters({ [key]: value });
+    }
+  };
+
+  const toggleAmenity = (amenity: string) => {
+    const current = filters.amenities || [];
+    if (current.includes(amenity)) {
+      updateFilter('amenities', current.filter(a => a !== amenity));
+    } else {
+      updateFilter('amenities', [...current, amenity]);
     }
   };
 
@@ -143,6 +183,24 @@ export function SearchPage() {
             placeholder={t('search.price.max', lang)}
           />
 
+          <button
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className={cn(
+              'flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition',
+              showAdvancedFilters
+                ? 'border-primary bg-primary/5 text-primary'
+                : 'border text-foreground hover:bg-muted'
+            )}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            {t('search.filters', lang)}
+            {activeFiltersCount > 0 && (
+              <span className="ml-1 rounded-full bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+
           {activeFiltersCount > 0 && (
             <button
               onClick={resetFilters}
@@ -167,6 +225,100 @@ export function SearchPage() {
           </button>
         </div>
       </div>
+
+      {/* Advanced Filters Panel */}
+      {showAdvancedFilters && (
+        <div className="border-b bg-muted/30 py-4">
+          <div className="mx-auto max-w-7xl px-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {/* Rooms filter */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Pièces</label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Min"
+                    value={filters.minRooms || ''}
+                    onChange={(e) => updateFilter('minRooms', e.target.value ? Number(e.target.value) : 0)}
+                    className="h-9 w-full rounded-lg border border bg-card px-3 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Max"
+                    value={filters.maxRooms || ''}
+                    onChange={(e) => updateFilter('maxRooms', e.target.value ? Number(e.target.value) : 0)}
+                    className="h-9 w-full rounded-lg border border bg-card px-3 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Area filter */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Surface (m²)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Min"
+                    value={filters.minArea || ''}
+                    onChange={(e) => updateFilter('minArea', e.target.value ? Number(e.target.value) : 0)}
+                    className="h-9 w-full rounded-lg border border bg-card px-3 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Max"
+                    value={filters.maxArea || ''}
+                    onChange={(e) => updateFilter('maxArea', e.target.value ? Number(e.target.value) : 0)}
+                    className="h-9 w-full rounded-lg border border bg-card px-3 text-sm text-foreground outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Available only */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Disponibilité</label>
+                <button
+                  onClick={() => updateFilter('availableOnly', !filters.availableOnly)}
+                  className={cn(
+                    'flex h-9 w-full items-center gap-2 rounded-lg border px-3 text-sm transition',
+                    filters.availableOnly
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border bg-card text-foreground hover:bg-muted'
+                  )}
+                >
+                  {filters.availableOnly && <Check className="h-4 w-4" />}
+                  Disponible uniquement
+                </button>
+              </div>
+            </div>
+
+            {/* Amenities */}
+            <div className="mt-4">
+              <label className="text-xs font-medium text-muted-foreground mb-2 block">Équipements</label>
+              <div className="flex flex-wrap gap-2">
+                {AMENITIES_LIST.slice(0, 10).map((amenity) => (
+                  <button
+                    key={amenity}
+                    type="button"
+                    onClick={() => toggleAmenity(amenity)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-full text-xs font-medium transition-colors border',
+                      filters.amenities?.includes(amenity)
+                        ? 'bg-primary/10 border-primary/30 text-primary'
+                        : 'bg-card border-transparent text-muted-foreground hover:bg-muted'
+                    )}
+                  >
+                    {amenity}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto max-w-7xl px-4 py-5">
         {/* Header + sort */}

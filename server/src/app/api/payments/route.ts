@@ -7,8 +7,17 @@ const paymentSchema = z.object({
   bookingId: z.string().cuid(),
   method: z.enum(['flooz', 'tmoney', 'wave', 'orange_money', 'cash']),
   phone: z.string().min(8).max(15),
-  amount: z.number().positive(),
 });
+
+export async function GET() {
+  const mode = process.env.PAYMENT_MODE === 'demo'
+    ? 'demo'
+    : process.env.PAYMENT_MODE === 'kagopay' && process.env.KAGOPAY_API_KEY
+      ? 'kagopay'
+      : 'unavailable';
+
+  return NextResponse.json({ mode });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,7 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { bookingId, method, phone, amount } = parsed.data;
+    const { bookingId, method, phone } = parsed.data;
 
     const booking = await db.booking.findUnique({
       where: { id: bookingId },
@@ -42,6 +51,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Booking must be accepted before payment' },
         { status: 400 }
+      );
+    }
+
+    const bookingDays = Math.ceil(
+      (new Date(booking.endDate).getTime() - new Date(booking.startDate).getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+    if (!Number.isFinite(bookingDays) || bookingDays <= 0) {
+      return NextResponse.json({ error: 'Booking dates are invalid' }, { status: 400 });
+    }
+    const amount = Math.round((booking.listing.price / 30) * bookingDays);
+    if (amount <= 0) {
+      return NextResponse.json({ error: 'Booking amount is invalid' }, { status: 400 });
+    }
+    const isDemoMode = process.env.PAYMENT_MODE === 'demo';
+    if (!isDemoMode) {
+      return NextResponse.json(
+        { error: 'Payment provider integration is not configured' },
+        { status: 501 }
       );
     }
     if (booking.payment && booking.payment.status === 'paid') {
@@ -64,10 +92,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const isDemoMode = process.env.PAYMENT_MODE === 'demo';
-    const message = isDemoMode
-      ? `Demo mode: A payment request of ${amount} FCFA has been simulated for ${phone}. Enter any 4-6 digit code to verify.`
-      : `A payment request of ${amount} FCFA has been sent to ${phone}. Confirm with the code received.`;
+    const message = `Demo mode: A payment request of ${amount} FCFA has been simulated for ${phone}. Enter any 4-6 digit code to verify.`;
 
     return NextResponse.json({
       success: true,

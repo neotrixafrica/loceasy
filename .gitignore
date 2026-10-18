@@ -35,7 +35,8 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+.env
+.env.local
 
 # vercel
 .vercel
@@ -55,7 +56,6 @@ prompt
 package-lock.json
 
 # prisma
-/server/prisma/migrations/
 
 server.log
 # Skills directory
@@ -63,3 +63,18 @@ server.log
 
 # local postgresql data
 /db/postgres-data/
+
+# test results
+client/test-results/
+server/test-results/
+
+# secret generation script
+generate-secrets.js
+
+# analysis docs
+ANALYSE_COMPLETE.md
+KAGOPAY_INTEGRATION.md
+KAGOPAY_SETUP.md
+NEON_MIGRATION.md
+FEEXPAY_INTEGRATION.md
+FEEXPAY_SETUP.md

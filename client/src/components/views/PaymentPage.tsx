@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useAppStore } from '@/lib/store';
-import { api, apiGet } from '@/lib/api';
+import { api, apiGet, apiPost } from '@/lib/api';
 import { t } from '@/lib/translations';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,23 @@ const METHODS: { id: PaymentMethod; label: string; color: string }[] = [
   { id: 'orange_money', label: 'Orange Money', color: 'bg-orange-500' },
 ];
 
-type Step = 'form' | 'verify';
+type PaymentMode = 'demo' | 'kagopay' | 'unavailable';
+type Step = 'form' | 'verify' | 'pending';
+
+interface KagoPayLink {
+  amount: number;
+  currency: string;
+  reference: string | null;
+  status: string;
+  expiresAt: string;
+}
+
+interface KagoPayStatus {
+  status: 'pending' | 'success' | 'failed';
+  reference: string;
+  operator: 'yas' | 'moov';
+  message?: string;
+}
 
 interface BookingWithListing extends Booking {
   listing: NonNullable<Booking['listing']>;
@@ -39,27 +55,53 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
   const [step, setStep] = useState<Step>('form');
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>('unavailable');
+  const [reference, setReference] = useState<string | null>(null);
+  const [providerStatus, setProviderStatus] = useState<KagoPayStatus['status'] | null>(null);
 
   useEffect(() => {
     let mounted = true;
-    params.then(({ bookingId }) => {
-      apiGet<Booking[]>('/api/bookings?scope=tenant')
-        .then((data) => {
-          if (!mounted) return;
-          const found = data.find((b) => b.id === bookingId) as BookingWithListing | undefined;
-          if (found?.listing) {
-            setBooking(found);
-            if (found.payment && found.payment.status === 'pending') {
-              setPaymentId(found.payment.id);
-              setPhone(found.payment.phone);
-              setMethod(found.payment.method);
-              setStep('verify');
-            }
+
+    const load = async () => {
+      try {
+        const [{ bookingId }, modeData, bookings] = await Promise.all([
+          params,
+          apiGet<{ mode: PaymentMode }>('/api/payments'),
+          apiGet<Booking[]>('/api/bookings?scope=tenant'),
+        ]);
+        if (!mounted) return;
+
+        setPaymentMode(modeData.mode);
+        const found = bookings.find((item) => item.id === bookingId) as BookingWithListing | undefined;
+        if (!found?.listing) return;
+        setBooking(found);
+
+        if (modeData.mode === 'demo' && found.payment && found.payment.status === 'pending') {
+          setPaymentId(found.payment.id);
+          setPhone(found.payment.phone);
+          setMethod(found.payment.method);
+          setStep('verify');
+        }
+
+        if (modeData.mode === 'kagopay' && found.status === 'accepted' && found.paymentStatus !== 'paid') {
+          const existing = await apiGet<{ paymentLink: KagoPayLink | null }>(
+            `/api/payments/kagopay/initiate?bookingId=${encodeURIComponent(bookingId)}`
+          );
+          const link = existing.paymentLink;
+          if (mounted && link?.reference && (link.status === 'pending' || link.status === 'paid')) {
+            setReference(link.reference);
+            setProviderStatus(link.status === 'paid' ? 'success' : 'pending');
+            setStep('pending');
           }
-        })
-        .catch(() => {})
-        .finally(() => mounted && setFetching(false));
-    });
+        }
+      } catch {
+        if (mounted) setPaymentMode('unavailable');
+      } finally {
+        if (mounted) setFetching(false);
+      }
+    };
+
+    void load();
     return () => { mounted = false; };
   }, [params]);
 
@@ -79,6 +121,27 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
 
     setLoading(true);
     try {
+      if (paymentMode === 'kagopay') {
+        const result = await apiPost<{
+          reference: string;
+          status: KagoPayStatus['status'];
+          message?: string;
+        }>('/api/payments/kagopay/initiate', {
+          bookingId: booking.id,
+          phone,
+        });
+        setReference(result.reference);
+        setProviderStatus(result.status);
+        setStep('pending');
+        toast.success(result.message || t('payment.initiated', lang));
+        return;
+      }
+
+      if (paymentMode !== 'demo') {
+        toast.error(t('payment.unavailable', lang));
+        return;
+      }
+
       const data = await api.payments.create({
         bookingId: booking.id,
         method,
@@ -92,6 +155,36 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
     } catch (error) {
       const msg = error instanceof Error ? error.message : t('common.error', lang);
       toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckKagoPayStatus = async () => {
+    if (!reference) return;
+
+    setLoading(true);
+    try {
+      const status = await apiGet<KagoPayStatus>(
+        `/api/payments/kagopay/status?reference=${encodeURIComponent(reference)}`
+      );
+      setProviderStatus(status.status);
+
+      if (status.status === 'success') {
+        const bookings = await apiGet<Booking[]>('/api/bookings?scope=tenant');
+        const updated = bookings.find((item) => item.id === booking?.id);
+        if (updated?.paymentStatus === 'paid') {
+          setBooking(updated as BookingWithListing);
+          toast.success(t('payment.confirmed', lang));
+          router.push('/profile');
+          return;
+        }
+        toast.success(t('payment.providerConfirmed', lang));
+      } else if (status.status === 'failed') {
+        toast.error(t('payment.providerFailed', lang));
+      }
+    } catch {
+      toast.error(t('common.error', lang));
     } finally {
       setLoading(false);
     }
@@ -144,6 +237,34 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
     );
   }
 
+  if (booking.status !== 'accepted') {
+    return (
+      <div className="flex-1 container mx-auto px-4 py-6 max-w-lg">
+        <Card className="p-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            {booking.status === 'pending' ? t('payment.awaitingApproval', lang) : t('payment.notAccepted', lang)}
+          </p>
+          <Button className="mt-6" onClick={() => router.push('/profile')}>
+            {t('common.back', lang)}
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (paymentMode === 'unavailable') {
+    return (
+      <div className="flex-1 container mx-auto px-4 py-6 max-w-lg">
+        <Card className="p-6 text-center">
+          <p className="text-sm text-muted-foreground">{t('payment.unavailable', lang)}</p>
+          <Button className="mt-6" onClick={() => router.push('/profile')}>
+            {t('common.back', lang)}
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 container mx-auto px-4 md:px-6 py-6 max-w-lg">
       <h1 className="font-display text-xl md:text-2xl font-bold mb-6">{t('payment.title', lang)}</h1>
@@ -169,29 +290,67 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
         </CardContent>
       </Card>
 
-      {step === 'form' ? (
+      {step === 'pending' ? (
+        <div className="space-y-4">
+          <Card className={cn(
+            'border',
+            providerStatus === 'failed' ? 'bg-destructive/5 border-destructive/20' : 'bg-primary/5 border-primary/20'
+          )}>
+            <CardContent className="p-4 text-sm">
+              <p className="font-medium">
+                {providerStatus === 'failed'
+                  ? t('payment.providerFailed', lang)
+                  : providerStatus === 'success'
+                    ? t('payment.providerConfirmed', lang)
+                    : t('payment.providerPending', lang)}
+              </p>
+              {reference && <p className="mt-2 text-xs text-muted-foreground">{t('payment.reference', lang)}: {reference}</p>}
+            </CardContent>
+          </Card>
+          {providerStatus === 'failed' ? (
+            <Button className="w-full" onClick={() => { setProviderStatus(null); setReference(null); setStep('form'); }}>
+              {t('payment.retry', lang)}
+            </Button>
+          ) : (
+            <Button className="w-full" onClick={handleCheckKagoPayStatus} disabled={loading}>
+              {loading ? t('common.loading', lang) : t('payment.checkStatus', lang)}
+            </Button>
+          )}
+          <Button variant="outline" className="w-full" onClick={() => router.push('/profile')}>
+            {t('common.back', lang)}
+          </Button>
+        </div>
+      ) : step === 'form' ? (
         <form onSubmit={handleInitiate} className="space-y-5">
-          <div>
-            <label className="text-sm font-medium mb-2 block">{t('payment.method', lang)}</label>
-            <div className="grid grid-cols-2 gap-3">
-              {METHODS.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setMethod(m.id)}
-                  className={cn(
-                    'flex items-center gap-2 p-3 rounded-xl border text-left text-sm transition',
-                    method === m.id
-                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                      : 'border-border bg-card hover:bg-muted'
-                  )}
-                >
-                  <Wallet className={cn('h-4 w-4', method === m.id ? 'text-primary' : 'text-muted-foreground')} />
-                  {m.label}
-                </button>
-              ))}
+          {paymentMode === 'demo' ? (
+            <div>
+              <label className="text-sm font-medium mb-2 block">{t('payment.method', lang)}</label>
+              <div className="grid grid-cols-2 gap-3">
+                {METHODS.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setMethod(m.id)}
+                    className={cn(
+                      'flex items-center gap-2 p-3 rounded-xl border text-left text-sm transition',
+                      method === m.id
+                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                        : 'border-border bg-card hover:bg-muted'
+                    )}
+                  >
+                    <Wallet className={cn('h-4 w-4', method === m.id ? 'text-primary' : 'text-muted-foreground')} />
+                    {m.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="p-4 text-sm text-primary">
+                {t('payment.mobileRequest', lang)}
+              </CardContent>
+            </Card>
+          )}
 
           <div>
             <label className="text-sm font-medium mb-1.5 block">
@@ -206,7 +365,9 @@ export function PaymentPage({ params }: { params: Promise<{ bookingId: string }>
               required
               minLength={8}
             />
-            <p className="text-xs text-muted-foreground mt-1.5">{t('payment.simulation', lang)}</p>
+            {paymentMode === 'demo' && (
+              <p className="text-xs text-muted-foreground mt-1.5">{t('payment.simulation', lang)}</p>
+            )}
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>

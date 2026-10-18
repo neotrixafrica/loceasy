@@ -86,6 +86,11 @@ export const api = {
     register: (data: { name: string; email: string; password: string; phone?: string; role: string }) => apiPost<unknown>('/api/auth/register', data),
     me: () => apiGet<{ id: string; email: string; name: string; phone?: string | null; role: string; avatar?: string | null; verified: boolean; city?: string | null }>('/api/auth/me'),
   },
+  verification: {
+    sendPhoneOtp: (phone: string) => apiPost<{ success: boolean; otp?: string }>('/api/auth/verify-phone/send', { phone }),
+    verifyPhoneOtp: (otp: string) => apiPost<{ success: boolean }>('/api/auth/verify-phone/verify', { otp }),
+    submitIdentity: (docUrl: string, docType: string) => apiPost<{ success: boolean }>('/api/auth/verify-identity/submit', { docUrl, docType }),
+  },
   listings: {
     list: (params?: { city?: string; quartier?: string; type?: string; minPrice?: number; maxPrice?: number; search?: string }) => {
       const search = new URLSearchParams();
@@ -99,10 +104,11 @@ export const api = {
     },
     get: (id: string) => apiGet<unknown>(`/api/listings/${id}`),
     create: (data: unknown) => apiPost<unknown>('/api/listings', data),
+    updateStatus: (id: string, status: string) => apiPatch<unknown>(`/api/listings/${id}/status`, { status }),
   },
   bookings: {
     list: () => apiGet<unknown[]>('/api/bookings'),
-    create: (data: BookingInput) => apiPost<unknown>('/api/bookings', data),
+    create: (data: BookingInput) => apiPost<{ id: string }>('/api/bookings', data),
     update: (id: string, data: { status?: string; paymentStatus?: string }) => apiPatch<unknown>(`/api/bookings/${id}`, data),
   },
   favorites: {

@@ -63,8 +63,8 @@ export function BookingFormPage({ listingId }: { listingId?: string }) {
         endDate,
         message,
       });
-      toast.success(t('booking.success', lang));
-      router.push(`/listing/${listing.id}`);
+      toast.success(t('booking.created', lang));
+      router.push('/profile');
     } catch (error) {
       const msg = error instanceof Error ? error.message : t('common.error', lang);
       toast.error(msg);
@@ -128,6 +128,7 @@ export function BookingFormPage({ listingId }: { listingId?: string }) {
             <Input
               type="date"
               value={endDate}
+              min={startDate || undefined}
               onChange={(e) => setEndDate(e.target.value)}
               required
             />
@@ -152,7 +153,7 @@ export function BookingFormPage({ listingId }: { listingId?: string }) {
           <Button type="button" variant="outline" className="flex-1" onClick={() => router.push(`/listing/${listing.id}`)}>
             {t('common.cancel', lang)}
           </Button>
-          <Button type="submit" className="flex-1" disabled={loading}>
+          <Button type="submit" className="flex-1" disabled={loading || days <= 0}>
             {loading ? t('common.loading', lang) : t('booking.submit', lang)}
           </Button>
         </div>

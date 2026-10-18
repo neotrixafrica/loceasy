@@ -24,6 +24,10 @@ export function LandlordDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentUser) router.push('/login');
+  }, [currentUser, router]);
+
+  useEffect(() => {
     if (!currentUser) return;
     let mounted = true;
     const load = async () => {
@@ -79,7 +83,6 @@ export function LandlordDashboard() {
   };
 
   if (!currentUser) {
-    router.push('/login');
     return null;
   }
 

@@ -32,62 +32,115 @@ enum PaymentMethod {
   wave
   orange_money
   cash
+  yas_togo
+  moov_togo
+}
+
+enum VerificationStatus {
+  pending
+  verified
+  rejected
+}
+
+enum ReportStatus {
+  pending
+  reviewed
+  resolved
+  dismissed
+}
+
+enum ReportType {
+  user
+  listing
+  message
+}
+
+enum ListingStatus {
+  available
+  viewing_in_progress
+  reserved
+  rented
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  phone     String?
-  role      UserRole @default(tenant)
-  avatar    String?
-  verified        Boolean  @default(false)
-  verificationDoc String?
-  city            String?
-  createdAt       DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String            @id @default(cuid())
+  email            String            @unique
+  password         String
+  name             String
+  phone            String?
+  phoneVerified    Boolean           @default(false)
+  phoneVerifiedAt  DateTime?
+  phoneOtp         String?
+  phoneOtpExpires  DateTime?
+  role             UserRole          @default(tenant)
+  avatar           String?
+  verified         Boolean           @default(false)
+  verificationStatus VerificationStatus @default(pending)
+  verificationDoc   String?
+  verificationDocType String?
+  verificationSubmittedAt DateTime?
+  verificationReviewedAt DateTime?
+  verificationRejectionReason String?
+  city             String?
+  trustScore       Float             @default(0)
+  totalListings    Int               @default(0)
+  totalBookings    Int               @default(0)
+  responseRate     Float?
+  responseTime     Int?
+  badge            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   listings         Listing[]  @relation("LandlordListings")
-  bookings         Booking[]  @relation("TenantBookings")
+  bookings         Booking[] @relation("TenantBookings")
   favorites        Favorite[] @relation("UserFavorites")
   reviews          Review[]   @relation("UserReviews")
   sentMessages     Message[]       @relation("SentMessages")
   receivedMessages Message[]       @relation("ReceivedMessages")
   notifications    Notification[]
+  sentReports      Report[]  @relation("UserSentReports")
+  receivedReports  Report[]  @relation("UserReceivedReports")
 
   @@index([role])
+  @@index([verificationStatus])
+  @@index([trustScore])
 }
 
 model Listing {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  price       Float
-  type        String
-  city        String
-  quartier    String?
-  address     String?
-  latitude    Float?
-  longitude   Float?
-  rooms       Int      @default(1)
-  area        Float?
-  amenities   String[] @default([])
-  images      String[] @default([])
-  rules       String?
-  available   Boolean  @default(true)
-  landlordId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String        @id @default(cuid())
+  title            String
+  description      String
+  price            Float
+  type             String
+  city             String
+  quartier         String?
+  address          String?
+  latitude         Float?
+  longitude        Float?
+  rooms            Int           @default(1)
+  area             Float?
+  amenities        String[]      @default([])
+  images           String[]      @default([])
+  rules            String?
+  status           ListingStatus @default(available)
+  available        Boolean       @default(true)
+  verified         Boolean       @default(false)
+  verificationDate DateTime?
+  landlordId       String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   landlord  User      @relation("LandlordListings", fields: [landlordId], references: [id], onDelete: Cascade)
   bookings  Booking[] @relation("ListingBookings")
   favorites Favorite[] @relation("ListingFavorites")
   reviews   Review[]  @relation("ListingReviews")
+  reports   Report[]  @relation("ListingReports")
 
   @@index([city])
   @@index([type])
+  @@index([status])
   @@index([available])
+  @@index([verified])
   @@index([landlordId])
   @@index([price])
 }
@@ -104,9 +157,10 @@ model Booking {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  tenant  User     @relation("TenantBookings", fields: [tenantId], references: [id], onDelete: Cascade)
-  listing Listing  @relation("ListingBookings", fields: [listingId], references: [id], onDelete: Cascade)
-  payment Payment?
+  tenant       User        @relation("TenantBookings", fields: [tenantId], references: [id], onDelete: Cascade)
+  listing      Listing     @relation("ListingBookings", fields: [listingId], references: [id], onDelete: Cascade)
+  payment      Payment?
+  paymentLink  PaymentLink?
 
   @@index([tenantId])
   @@index([listingId])
@@ -124,6 +178,7 @@ model Message {
 
   sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  reports  Report[] @relation("MessageReports")
 
   @@index([senderId])
   @@index([receiverId])
@@ -170,19 +225,36 @@ model Payment {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@index([bookingId])
   @@index([status])
 }
 
+model PaymentLink {
+  id          String   @id @default(cuid())
+  bookingId   String   @unique
+  amount      Float
+  currency    String   @default("XOF")
+  feexpayId   String?  @unique
+  status      String   @default("pending")
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([expiresAt])
+}
+
 model Notification {
   id        String   @id @default(cuid())
   userId    String
-  type      String   // booking | message | payment
+  type      String
   title     String
   body      String
-  link      String?  // conversation:<partnerId> | messages | booking:<id>
+  link      String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
@@ -191,4 +263,32 @@ model Notification {
   @@index([userId])
   @@index([read])
   @@index([createdAt])
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  type        ReportType
+  reason      String
+  description String?
+  status      ReportStatus @default(pending)
+  reporterId  String
+  targetUserId String?
+  targetListingId String?
+  targetMessageId String?
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  resolution  String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  reporter   User     @relation("UserSentReports", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetUser User?    @relation("UserReceivedReports", fields: [targetUserId], references: [id], onDelete: Cascade)
+  listing    Listing? @relation("ListingReports", fields: [targetListingId], references: [id], onDelete: Cascade)
+  message    Message? @relation("MessageReports", fields: [targetMessageId], references: [id], onDelete: Cascade)
+
+  @@index([type])
+  @@index([status])
+  @@index([reporterId])
+  @@index([targetUserId])
+  @@index([targetListingId])
 }

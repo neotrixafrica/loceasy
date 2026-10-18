@@ -37,7 +37,10 @@ export const bookingSchema = z.object({
   endDate: dateString,
   message: z.string().optional().nullable(),
   listingId: z.string().cuid('Invalid listing ID'),
-});
+}).refine(
+  ({ startDate, endDate }) => new Date(endDate).getTime() > new Date(startDate).getTime(),
+  { message: 'End date must be after start date', path: ['endDate'] }
+);
 
 export const bookingStatusSchema = z.object({
   status: z.enum(['pending', 'accepted', 'rejected', 'cancelled']),

@@ -10,16 +10,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { PlusCircle, X } from 'lucide-react';
+import { PlusCircle, X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { ImageUploader } from '@/components/shared/ImageUploader';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const TYPES = ['chambre', 'studio', 'appartement', 'maison', 'bureau'] as const;
 
+const STEPS = [
+  { id: 1, title: 'Informations' },
+  { id: 2, title: 'Localisation' },
+  { id: 3, title: 'Détails' },
+  { id: 4, title: 'Images' },
+];
+
 export function AddListingPage() {
   const { lang, currentUser } = useAppStore();
   const router = useRouter();
+  const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -68,6 +76,30 @@ export function AddListingPage() {
     setImageUrls(updated);
   };
 
+  const handleNext = () => {
+    if (step === 1 && (!form.title || !form.description || !form.price)) {
+      toast.error('Veuillez remplir tous les champs requis');
+      return;
+    }
+    if (step === 2 && (!form.city || !form.address)) {
+      toast.error('Veuillez remplir la ville et l\'adresse');
+      return;
+    }
+    if (step === 3 && (!form.rooms || !form.area)) {
+      toast.error('Veuillez remplir le nombre de pièces et la surface');
+      return;
+    }
+    if (step === 4 && imageUrls.filter(Boolean).length === 0) {
+      toast.error('Veuillez ajouter au moins une image');
+      return;
+    }
+    setStep(step + 1);
+  };
+
+  const handleBack = () => {
+    setStep(step - 1);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
@@ -99,194 +131,236 @@ export function AddListingPage() {
     <div className="flex-1 container mx-auto px-4 md:px-6 py-6 max-w-2xl">
       <h1 className="font-display text-xl md:text-2xl font-bold mb-6">{t('addListing.title', lang)}</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
-          <CardContent className="p-5 space-y-4">
-            <FormField label={t('addListing.titleField', lang)}>
-              <Input
-                value={form.title}
-                onChange={(e) => updateField('title', e.target.value)}
-                placeholder={t('addListing.titlePlaceholder', lang)}
-                required
+      {/* Step Indicator */}
+      <div className="flex items-center justify-center mb-6">
+        {STEPS.map((s, index) => (
+          <div key={s.id} className="flex items-center">
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                  step === s.id
+                    ? 'bg-primary text-primary-foreground scale-110'
+                    : step > s.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                {step > s.id ? <Check className="w-4 h-4" /> : s.id}
+              </div>
+              <span className="text-xs mt-1 text-muted-foreground">{s.title}</span>
+            </div>
+            {index < STEPS.length - 1 && (
+              <div
+                className={`w-12 h-0.5 mx-2 transition-all ${
+                  step > s.id ? 'bg-primary' : 'bg-muted'
+                }`}
               />
-            </FormField>
+            )}
+          </div>
+        ))}
+      </div>
 
-            <FormField label={t('addListing.description', lang)}>
-              <Textarea
-                value={form.description}
-                onChange={(e) => updateField('description', e.target.value)}
-                placeholder={t('addListing.descriptionPlaceholder', lang)}
-                rows={4}
-                required
-              />
-            </FormField>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label={t('addListing.price', lang)}>
+      <form onSubmit={step === 4 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }} className="space-y-6">
+        {step === 1 && (
+          <Card>
+            <CardContent className="p-5 space-y-4">
+              <FormField label={t('addListing.titleField', lang)}>
                 <Input
-                  type="number"
-                  min={0}
-                  value={form.price}
-                  onChange={(e) => updateField('price', e.target.value)}
-                  placeholder="50000"
+                  value={form.title}
+                  onChange={(e) => updateField('title', e.target.value)}
+                  placeholder={t('addListing.titlePlaceholder', lang)}
                   required
                 />
               </FormField>
 
-              <FormField label={t('addListing.type', lang)}>
-                <Select value={form.type} onValueChange={(val) => updateField('type', val)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TYPES.map((type) => (
-                      <SelectItem key={type} value={type}>{t(`type.${type}`, lang)}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-5 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label={t('addListing.city', lang)}>
-                <Select value={form.city} onValueChange={(val) => updateField('city', val)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('search.city.all', lang)} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TOGO_CITIES.map((city) => (
-                      <SelectItem key={city} value={city}>{city}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-
-              <FormField label={t('addListing.quartier', lang)}>
-                <Select value={form.quartier} onValueChange={(val) => updateField('quartier', val)} disabled={!form.city}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('search.quartier.all', lang)} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {quartiers.map((q) => (
-                      <SelectItem key={q} value={q}>{q}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-            </div>
-
-            <FormField label={t('addListing.address', lang)}>
-              <Input
-                value={form.address}
-                onChange={(e) => updateField('address', e.target.value)}
-                placeholder={t('addListing.addressPlaceholder', lang)}
-              />
-            </FormField>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-5 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField label={t('addListing.rooms', lang)}>
-                <Input
-                  type="number"
-                  value={form.rooms}
-                  onChange={(e) => updateField('rooms', e.target.value)}
-                  min={1}
+              <FormField label={t('addListing.description', lang)}>
+                <Textarea
+                  value={form.description}
+                  onChange={(e) => updateField('description', e.target.value)}
+                  placeholder={t('addListing.descriptionPlaceholder', lang)}
+                  rows={4}
+                  required
                 />
               </FormField>
 
-              <FormField label={t('addListing.area', lang)}>
-                <Input
-                  type="number"
-                  value={form.area}
-                  onChange={(e) => updateField('area', e.target.value)}
-                  placeholder="25"
-                />
-              </FormField>
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label={t('addListing.price', lang)}>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={form.price}
+                    onChange={(e) => updateField('price', e.target.value)}
+                    placeholder="50000"
+                    required
+                  />
+                </FormField>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">{t('addListing.amenities', lang)}</label>
-              <div className="flex flex-wrap gap-2">
-                {AMENITIES_LIST.map((amenity) => (
-                  <button
-                    key={amenity}
-                    type="button"
-                    className={cn(
-                      'px-3 py-1.5 rounded-full text-xs font-medium transition-colors border',
-                      amenities.includes(amenity)
-                        ? 'bg-primary/10 border-primary/30 text-primary'
-                        : 'bg-muted border-transparent text-muted-foreground hover:bg-muted/80'
-                    )}
-                    onClick={() => toggleAmenity(amenity)}
-                  >
-                    {amenity}
-                  </button>
-                ))}
+                <FormField label={t('addListing.type', lang)}>
+                  <Select value={form.type} onValueChange={(val) => updateField('type', val)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TYPES.map((type) => (
+                        <SelectItem key={type} value={type}>{t(`type.${type}`, lang)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
-        <Card>
-          <CardContent className="p-5 space-y-3">
-            <label className="text-sm font-medium block">{t('addListing.images', lang)}</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {imageUrls.map((url, index) => (
-                <div key={index} className="relative">
-                  <ImageUploader value={url} onChange={(value) => updateImageUrl(index, value)} disabled={loading} />
-                  {imageUrls.length > 1 && (
+        {step === 2 && (
+          <Card>
+            <CardContent className="p-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label={t('addListing.city', lang)}>
+                  <Select value={form.city} onValueChange={(val) => updateField('city', val)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('search.city.all', lang)} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TOGO_CITIES.map((city) => (
+                        <SelectItem key={city} value={city}>{city}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
+                <FormField label={t('addListing.quartier', lang)}>
+                  <Select value={form.quartier} onValueChange={(val) => updateField('quartier', val)} disabled={!form.city}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('search.quartier.all', lang)} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {quartiers.map((q) => (
+                        <SelectItem key={q} value={q}>{q}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              </div>
+
+              <FormField label={t('addListing.address', lang)}>
+                <Input
+                  value={form.address}
+                  onChange={(e) => updateField('address', e.target.value)}
+                  placeholder={t('addListing.addressPlaceholder', lang)}
+                />
+              </FormField>
+            </CardContent>
+          </Card>
+        )}
+
+        {step === 3 && (
+          <Card>
+            <CardContent className="p-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label={t('addListing.rooms', lang)}>
+                  <Input
+                    type="number"
+                    value={form.rooms}
+                    onChange={(e) => updateField('rooms', e.target.value)}
+                    min={1}
+                  />
+                </FormField>
+
+                <FormField label={t('addListing.area', lang)}>
+                  <Input
+                    type="number"
+                    value={form.area}
+                    onChange={(e) => updateField('area', e.target.value)}
+                    placeholder="25"
+                  />
+                </FormField>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">{t('addListing.amenities', lang)}</label>
+                <div className="flex flex-wrap gap-2">
+                  {AMENITIES_LIST.map((amenity) => (
                     <button
+                      key={amenity}
                       type="button"
-                      onClick={() => removeImageUrl(index)}
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-white flex items-center justify-center shadow-sm hover:bg-destructive/90"
-                      aria-label={t('common.delete', lang)}
+                      className={cn(
+                        'px-3 py-1.5 rounded-full text-xs font-medium transition-colors border',
+                        amenities.includes(amenity)
+                          ? 'bg-primary/10 border-primary/30 text-primary'
+                          : 'bg-muted border-transparent text-muted-foreground hover:bg-muted/80'
+                      )}
+                      onClick={() => toggleAmenity(amenity)}
                     >
-                      <X className="h-3 w-3" />
+                      {amenity}
                     </button>
-                  )}
+                  ))}
                 </div>
-              ))}
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addImageUrl}
-              disabled={imageUrls.length >= 20}
-            >
-              <PlusCircle className="h-3 w-3 mr-1" />
-              {t('addListing.addImage', lang)}
-              {imageUrls.length > 0 && ` (${imageUrls.length})`}
-            </Button>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        <Card>
-          <CardContent className="p-5">
-            <FormField label={t('addListing.rules', lang)}>
-              <Textarea
-                value={form.rules}
-                onChange={(e) => updateField('rules', e.target.value)}
-                placeholder={t('addListing.rulesPlaceholder', lang)}
-                rows={3}
-              />
-            </FormField>
-          </CardContent>
-        </Card>
+        {step === 4 && (
+          <>
+            <Card>
+              <CardContent className="p-5 space-y-3">
+                <label className="text-sm font-medium block">{t('addListing.images', lang)}</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {imageUrls.map((url, index) => (
+                    <div key={index} className="relative">
+                      <ImageUploader value={url} onChange={(value) => updateImageUrl(index, value)} disabled={loading} />
+                      {imageUrls.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeImageUrl(index)}
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-white flex items-center justify-center shadow-sm hover:bg-destructive/90"
+                          aria-label={t('common.delete', lang)}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addImageUrl}
+                  disabled={imageUrls.length >= 20}
+                >
+                  <PlusCircle className="h-3 w-3 mr-1" />
+                  {t('addListing.addImage', lang)}
+                  {imageUrls.length > 0 && ` (${imageUrls.length})`}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-5">
+                <FormField label={t('addListing.rules', lang)}>
+                  <Textarea
+                    value={form.rules}
+                    onChange={(e) => updateField('rules', e.target.value)}
+                    placeholder={t('addListing.rulesPlaceholder', lang)}
+                    rows={3}
+                  />
+                </FormField>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
         <div className="flex gap-3">
-          <Button type="button" variant="outline" className="flex-1" onClick={() => router.push('/landlord-dashboard')}>
-            {t('common.cancel', lang)}
-          </Button>
+          {step > 1 && (
+            <Button type="button" variant="outline" className="flex-1" onClick={handleBack}>
+              <ChevronLeft className="mr-2 w-4 h-4" /> {t('common.back', lang)}
+            </Button>
+          )}
           <Button type="submit" className="flex-1" disabled={loading}>
-            {loading ? t('common.loading', lang) : t('addListing.submit', lang)}
+            {loading ? t('common.loading', lang) : step === 4 ? t('addListing.submit', lang) : t('common.next', lang)}
+            {step < 4 && <ChevronRight className="ml-2 w-4 h-4" />}
           </Button>
         </div>
       </form>
