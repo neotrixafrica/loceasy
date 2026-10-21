@@ -1,0 +1,12 @@
+{
+  "name": "loceasy-server",
+  "version": "1.0.0",
+  "description": "LocEasy Server API - Neon Serverless Deployment",
+  "main": ".next/standalone/server.js",
+  "scripts": {
+    "start": "node .next/standalone/server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

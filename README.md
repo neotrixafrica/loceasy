@@ -66,7 +66,22 @@ L'application sera accessible sur http://localhost:3000
 
 ## 🌐 Déploiement
 
-### Option 1 : Vercel (Recommandé pour le client)
+### Option 1 : Neon Serverless (Recommandé - Tout-en-un)
+
+Neon Serverless est la meilleure option car la base de données est déjà sur Neon.
+
+1. Suivez le guide complet : [DEPLOIEMENT_NEON.md](./DEPLOIEMENT_NEON.md)
+2. Déployez le serveur et le client sur Neon
+3. Profitez de l'auto-scaling et de la latence optimisée
+
+**Avantages :**
+- Base de données déjà sur Neon
+- Déploiement serverless
+- Auto-scaling automatique
+- Domaine gratuit `.neon.tech`
+- Latence optimisée pour l'Afrique (région Frankfurt)
+
+### Option 2 : Vercel (Pour le client uniquement)
 
 1. Installer Vercel CLI :
 ```bash
@@ -81,7 +96,7 @@ vercel
 
 3. Configurer les variables d'environnement dans le dashboard Vercel
 
-### Option 2 : Railway (Tout-en-un)
+### Option 3 : Railway (Tout-en-un)
 
 Railway peut héberger le client, le serveur et la base de données :
 
@@ -90,7 +105,7 @@ Railway peut héberger le client, le serveur et la base de données :
 3. Railway détectera automatiquement les applications
 4. Configurer les variables d'environnement
 
-### Option 3 : Render (Gratuit)
+### Option 4 : Render (Gratuit)
 
 1. Créer un compte sur https://render.com
 2. Connecter le dépôt GitHub
