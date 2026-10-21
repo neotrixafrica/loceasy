@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/session';
 import { bookingStatusSchema } from '@/lib/validation';
 import { availableFlag, deriveListingStatus } from '@/lib/listing-status';
+import { updateUserReputation } from '@/lib/reputation';
 
 const ALLOWED_STATUSES = ['accepted', 'rejected', 'cancelled'];
 
@@ -149,6 +150,15 @@ export async function PATCH(
         link: `booking:${booking.id}`,
       },
     });
+
+    // Update reputation for landlord when booking is accepted
+    if (status === 'accepted' && isLandlord) {
+      try {
+        await updateUserReputation(existing.listing.landlordId);
+      } catch (error) {
+        console.error('Failed to update landlord reputation:', error);
+      }
+    }
 
     return NextResponse.json(booking);
   } catch (error) {

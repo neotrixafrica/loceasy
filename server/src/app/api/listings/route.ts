@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/session';
 import { listingSchema } from '@/lib/validation';
+import { updateUserReputation } from '@/lib/reputation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,7 +45,23 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         landlord: {
-          select: { id: true, name: true, avatar: true, phone: true, city: true, verified: true },
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            phone: true,
+            city: true,
+            verified: true,
+            trustScore: true,
+            badge: true,
+            totalListings: true,
+            totalBookings: true,
+            completedBookings: true,
+            totalReviews: true,
+            averageRating: true,
+            responseRate: true,
+            responseTime: true,
+          },
         },
         _count: { select: { reviews: true } },
         reviews: { select: { rating: true } },
@@ -95,6 +112,13 @@ export async function POST(request: NextRequest) {
     const listing = await db.listing.create({
       data: data as any,
     });
+
+    // Update landlord reputation when listing is created
+    try {
+      await updateUserReputation(currentUser.id);
+    } catch (error) {
+      console.error('Failed to update landlord reputation:', error);
+    }
 
     return NextResponse.json(listing, { status: 201 });
   } catch (error) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCurrentUser } from '@/lib/session';
 import { listingSchema } from '@/lib/validation';
+import { updateUserReputation } from '@/lib/reputation';
 
 export async function GET(
   request: NextRequest,
@@ -13,7 +14,24 @@ export async function GET(
       where: { id },
       include: {
         landlord: {
-          select: { id: true, name: true, avatar: true, phone: true, city: true, email: true, verified: true },
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            phone: true,
+            city: true,
+            email: true,
+            verified: true,
+            trustScore: true,
+            badge: true,
+            totalListings: true,
+            totalBookings: true,
+            completedBookings: true,
+            totalReviews: true,
+            averageRating: true,
+            responseRate: true,
+            responseTime: true,
+          },
         },
       },
     });
@@ -94,6 +112,14 @@ export async function DELETE(
     }
 
     await db.listing.delete({ where: { id } });
+
+    // Update landlord reputation when listing is deleted
+    try {
+      await updateUserReputation(currentUser.id);
+    } catch (error) {
+      console.error('Failed to update landlord reputation:', error);
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete listing' }, { status: 500 });

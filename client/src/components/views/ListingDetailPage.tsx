@@ -28,6 +28,7 @@ import { ReviewsSection } from '@/components/shared/ReviewsSection';
 import { ImageLightbox } from '@/components/shared/ImageLightbox';
 import { ReportButton } from '@/components/shared/ReportButton';
 import { ListingStatusManager } from '@/components/shared/ListingStatusManager';
+import { ReputationBadge } from '@/components/shared/ReputationBadge';
 import type { Listing } from '@/types';
 
 const MapView = dynamic(() => import('@/components/shared/MapView'), {
@@ -475,6 +476,22 @@ export function ListingDetailPage({
                     </div>
                   </div>
                 </div>
+                {listing.landlord.badge && (
+                  <div className="mt-4">
+                    <ReputationBadge
+                      trustScore={listing.landlord.trustScore || 0}
+                      badge={listing.landlord.badge}
+                      totalListings={listing.landlord.totalListings || 0}
+                      totalBookings={listing.landlord.totalBookings || 0}
+                      completedBookings={listing.landlord.completedBookings || 0}
+                      totalReviews={listing.landlord.totalReviews || 0}
+                      averageRating={listing.landlord.averageRating || 0}
+                      responseRate={listing.landlord.responseRate || 0}
+                      responseTime={listing.landlord.responseTime || 0}
+                      compact
+                    />
+                  </div>
+                )}
               </div>
               )}
 

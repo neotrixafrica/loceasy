@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Mail, Phone, MapPin, CalendarDays, LogOut, Building2, MessageCircle, Heart, ShieldCheck, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { ReputationBadge } from '@/components/shared/ReputationBadge';
 import type { Booking, User, Lang } from '@/types';
 
 const statusClass: Record<string, string> = {
@@ -70,6 +71,20 @@ export function ProfilePage() {
       )}
 
       <QuickActions user={currentUser} lang={lang} router={router} />
+
+      {currentUser.role === 'landlord' && (
+        <ReputationBadge
+          trustScore={currentUser.trustScore || 0}
+          badge={currentUser.badge || 'Débutant'}
+          totalListings={currentUser.totalListings || 0}
+          totalBookings={currentUser.totalBookings || 0}
+          completedBookings={currentUser.completedBookings || 0}
+          totalReviews={currentUser.totalReviews || 0}
+          averageRating={currentUser.averageRating || 0}
+          responseRate={currentUser.responseRate || 0}
+          responseTime={currentUser.responseTime || 0}
+        />
+      )}
 
       {currentUser.role === 'tenant' && bookings.length > 0 && (
         <BookingList bookings={bookings} lang={lang} router={router} />

@@ -28,6 +28,9 @@ export interface User {
   trustScore?: number;
   totalListings?: number;
   totalBookings?: number;
+  completedBookings?: number;
+  totalReviews?: number;
+  averageRating?: number;
   responseRate?: number;
   responseTime?: number;
   badge?: string;
@@ -41,6 +44,15 @@ export interface Landlord {
   city?: string | null;
   verified?: boolean;
   avatar?: string | null;
+  trustScore?: number;
+  badge?: string;
+  totalListings?: number;
+  totalBookings?: number;
+  completedBookings?: number;
+  totalReviews?: number;
+  averageRating?: number;
+  responseRate?: number;
+  responseTime?: number;
 }
 
 export interface Listing {

@@ -85,8 +85,12 @@ model User {
   trustScore       Float             @default(0)
   totalListings    Int               @default(0)
   totalBookings    Int               @default(0)
+  completedBookings Int              @default(0)
+  totalReviews     Int               @default(0)
+  averageRating    Float?
   responseRate     Float?
   responseTime     Int?
+  lastActiveAt     DateTime?
   badge            String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
